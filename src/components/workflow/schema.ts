@@ -1,0 +1,32 @@
+export type ParameterSection = {
+  title: string;
+  description: string;
+  type?: string;
+  fa_icon?: string;
+  properties: { [key: string]: Parameter };
+};
+
+export type Parameter = {
+  type: string;
+  description?: string;
+  help_text?: string;
+  hidden?: boolean;
+  default?: any;
+  [key: string]: any;
+};
+
+export type WorkflowDefaults = {
+  [key: string]: string;
+};
+
+export type WorkflowSchema = {
+  [key: string]: any;
+};
+
+export type Workflow = {
+  name: string;
+  path: string;
+  description: string;
+  schema: WorkflowSchema;
+  defaults: WorkflowDefaults;
+};

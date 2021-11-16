@@ -1,0 +1,38 @@
+body {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+  
+ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+h1, h2, h3, h4, h5, p, a, div, span, li, label, button {
+    margin: 0;
+    padding: 0;
+    font-family: "HelveticaNeueLT",  Helvetica, Arial, sans-serif;
+    text-decoration: none;
+    list-style: none;
+}
+
+h1 {
+    padding: 15px 0;
+    font-size: 36px;
+    font-weight: normal;
+}
+h2 {
+    font-size: 18px;
+    font-weight: normal;
+}
+h3 {
+    font-weight: normal;
+    font-size: 12px;
+}
+
+.jupyterlab-nextflow-widget {
+    overflow-y: auto;
+}
