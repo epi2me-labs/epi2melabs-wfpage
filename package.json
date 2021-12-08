@@ -12,10 +12,7 @@
     "url": "https://github.com/epi2me-labs/epi2melabs-wfpage/issues"
   },
   "license": "BSD-3-Clause",
-  "author": {
-    "name": "epi2melabs",
-    "email": ""
-  },
+  "author": "epi2melabs",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
