@@ -51,7 +51,7 @@ const BooleanInput = ({
           defaultChecked={defaultValue}
           onChange={(e: any) => {
             setIsChecked(e.target.value);
-            onChange(id, format, e.target.value);
+            onChange(id, format, e.target.checked ? true : false);
           }}
         />
         <span>&#10003;</span>
