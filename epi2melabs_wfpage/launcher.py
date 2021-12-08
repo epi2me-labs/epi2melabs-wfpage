@@ -49,6 +49,7 @@ class WorkflowLauncher(object):
     def __init__(self, base_dir=None) -> None:
         self._workflows: Dict[str, Workflow] = {}
 
+        self.orig_dir = base_dir or 'epi2melabs'
         self.base_dir = base_dir or os.path.join(os.getcwd(), 'epi2melabs')
         self.instance_dir = os.path.join(self.base_dir, 'instances')
         self.workflows_dir = os.path.join(self.base_dir, 'workflows')
@@ -205,6 +206,8 @@ class WorkflowLauncher(object):
             f'invoke_nextflow -i {instance.id} -w {target} -p {params_file} '
             f'-wd {work_dir} -s {nf_std_out} -d {database}')
 
+        # Todo: May need to provide some different flags on windows
+        # in lieu of start_new_session working
         proc = subprocess.Popen([command], shell=True, start_new_session=True, 
             stdout=stdout, stderr=stderr, close_fds=True)
 

@@ -2,11 +2,10 @@ import os
 import json
 import tornado.web
 from typing import Union
-from urllib import parse
 from jupyter_server.utils import url_path_join
 from jupyter_server.base.handlers import APIHandler
 from epi2melabs_wfpage.config import Epi2melabsWFPage
-from epi2melabs_wfpage.launcher import get_workflow_launcher
+from epi2melabs_wfpage.launcher import RemoteWorkflowLauncher, get_workflow_launcher
 
 
 class LauncherAPIHandler(APIHandler):
@@ -36,14 +35,16 @@ class Logs(LauncherAPIHandler):
     def get(self, instance_id: str) -> None:
         """Get logs(s)"""
         if instance := self.launcher.get_instance(instance_id):
-            logfile = os.path.join(instance['path'], 'nextflow.stdout')
+            log_file = os.path.join(
+                self.launcher.instance_dir,
+                instance['name'], 'nextflow.stdout')
 
-            if not os.path.exists(logfile):
+            if not os.path.exists(log_file):
                 self.finish(json.dumps({}))
                 return
 
             lines = []
-            with open(logfile) as lf:
+            with open(log_file) as lf:
                 lines = lf.readlines()
                 lines = [line.rstrip() for line in lines]
                 self.finish(json.dumps({'logs': lines}))
@@ -58,7 +59,9 @@ class Params(LauncherAPIHandler):
     def get(self, instance_id: str) -> None:
         """Get params(s)"""
         if instance := self.launcher.get_instance(instance_id):
-            params_file = os.path.join(instance['path'], self.launcher.PARAMS)
+            params_file = os.path.join(
+                self.launcher.instance_dir,
+                instance['name'], self.launcher.PARAMS)
 
             if not os.path.exists(params_file):
                 self.finish(json.dumps({}))
@@ -100,6 +103,12 @@ class Instance(LauncherAPIHandler):
         """Get workflow instance(s)"""
         if instance_id:
             instance = self.launcher.get_instance(instance_id)
+
+            # Todo: stop hacking
+            instance['path'] = os.path.join(
+                self.launcher.orig_dir, 'instances',
+                instance['name'])
+
             self.finish(json.dumps(instance))
             return
         
@@ -160,7 +169,8 @@ def setup_handlers(web_app):
         config=web_app.settings['config_manager'].config)
 
     launcher = {'launcher': get_workflow_launcher(
-        None, remote=config.remote, ip=config.ip, port=config.port)}
+        base_dir=config.base_dir, remote=config.remote,
+        ip=config.ip, port=config.port)}
 
     # Workflow get
     workflow_pattern = url_path_join(

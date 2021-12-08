@@ -42,7 +42,9 @@ const InstanceComponent = ({
 
   const getInstanceParams = async () => {
     const { params } = await requestAPI<any>(`params/${routerParams.id}`);
-    setInstanceParams(params);
+    if (params !== null) {
+      setInstanceParams(params);
+    }
   };
 
   useEffect(() => {
@@ -70,7 +72,7 @@ const InstanceComponent = ({
     if (!instanceData) {
       return;
     }
-    const path = `/epi2melabs/instances/${instanceData.name}/output`;
+    const path = `${instanceData.path}/output`;
     try {
       const files = await (
         await docTrack.services.contents.get(path)
