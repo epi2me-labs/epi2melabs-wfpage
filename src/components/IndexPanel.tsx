@@ -13,7 +13,7 @@ interface IWorkflowsList {
 const IndexPanel = ({ className }: IWorkflowsList): JSX.Element => (
   <div className={`index-panel ${className}`}>
     <div className="index-panel-intro">
-      <h1>EPI2ME Labs Workflows</h1>
+      <h1>EPI2ME Labs Workflows (Beta)</h1>
       <p>
         EPI2ME Labs maintains a growing collection of workflows covering a range
         of everyday bioinformatics needs. These are free and open to use by

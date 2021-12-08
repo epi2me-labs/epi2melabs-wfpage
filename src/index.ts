@@ -40,7 +40,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       ([, setting]) => {
         commands.addCommand(COMMAND, {
           caption: 'Create an EPI2ME Labs workflow launcher',
-          label: 'Workflows',
+          label: 'Workflows (Beta)',
           icon: labsLogoIcon,
           execute: () => {
             const content = new Launcher(docTrack);
