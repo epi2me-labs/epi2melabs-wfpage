@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
 // -----------------------------------------------------------------------------
@@ -9,6 +9,7 @@ export const BOOL_INPUT = 'boolean';
 export interface IBooleanProps {
   id: string;
   label: string;
+  format: string;
   description: string;
   defaultValue?: boolean;
 }
@@ -25,35 +26,47 @@ interface IBooleanInput extends IBooleanProps {
 const BooleanInput = ({
   id,
   label,
+  format,
   description,
   defaultValue,
   error,
   onChange,
   className
-}: IBooleanInput): JSX.Element => (
-  <div className={`BooleanInput ${className}`}>
-    <h4>{label}</h4>
-    <p>{description}</p>
-    <label htmlFor={id}>
-      <input
-        id={id}
-        className="boolInput"
-        type="checkbox"
-        defaultChecked={defaultValue}
-        onChange={(e: any) => onChange(id, e.target.value ? true : false)}
-      />
-      <span>&#10003;</span>
-    </label>
+}: IBooleanInput): JSX.Element => {
+  const [isChecked, setIsChecked] = useState(defaultValue);
 
-    {error ? (
-      <div className="error">
-        <p>Error: {error}</p>
-      </div>
-    ) : (
-      ''
-    )}
-  </div>
-);
+  return (
+    <div
+      className={`BooleanInput ${className} ${
+        isChecked ? 'checked' : 'unchecked'
+      }`}
+    >
+      <h4>{label}</h4>
+      <p>{description}</p>
+      <label htmlFor={id}>
+        <input
+          id={id}
+          className="boolInput"
+          type="checkbox"
+          defaultChecked={defaultValue}
+          onChange={(e: any) => {
+            setIsChecked(e.target.value);
+            onChange(id, format, e.target.value);
+          }}
+        />
+        <span>&#10003;</span>
+      </label>
+
+      {error ? (
+        <div className="error">
+          <p>Error: {error}</p>
+        </div>
+      ) : (
+        ''
+      )}
+    </div>
+  );
+};
 
 // -----------------------------------------------------------------------------
 // Component Styles
@@ -66,8 +79,9 @@ const StyledBooleanInput = styled(BooleanInput)`
     border-radius: 4px;
   }
 
-  .input-container p {
+  p {
     padding: 15px 0;
+    margin: 0 0 10px 0;
   }
 
   label {
@@ -110,6 +124,11 @@ const StyledBooleanInput = styled(BooleanInput)`
 
   label span {
     font-size: 20px;
+  }
+
+  input:checked + span {
+    background-color: black;
+    color: white;
   }
 
   .error {

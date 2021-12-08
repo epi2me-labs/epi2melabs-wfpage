@@ -47,8 +47,7 @@ const InstanceComponent = ({
 
   useEffect(() => {
     const init = async () => {
-      const data = await getInstanceData();
-      getInstanceOutputs(data.workflow);
+      await getInstanceData();
       getInstanceParams();
       getInstanceLogs();
     };
@@ -67,9 +66,11 @@ const InstanceComponent = ({
     setInstanceLogs(logs);
   };
 
-  const getInstanceOutputs = async (workflow = null) => {
-    const workflowName = instanceData ? instanceData.workflow : workflow;
-    const path = `/epi2melabs/instances/${workflowName}-${routerParams.id}/output`;
+  const getInstanceOutputs = async (instanceData: any) => {
+    if (!instanceData) {
+      return;
+    }
+    const path = `/epi2melabs/instances/${instanceData.name}/output`;
     try {
       const files = await (
         await docTrack.services.contents.get(path)
@@ -85,10 +86,23 @@ const InstanceComponent = ({
   };
 
   useEffect(() => {
-    if (['LAUNCHED'].includes(instanceStatus)) {
-      const filesMonitor = setInterval(() => getInstanceOutputs(), 10000);
+    if (
+      ['COMPLETED_SUCCESSFULLY', 'TERMINATED', 'ENCOUNTERED_ERROR'].includes(
+        instanceStatus
+      )
+    ) {
+      getInstanceOutputs(instanceData);
+      getInstanceLogs();
+      return;
+    } else {
+      const filesMonitor = setInterval(
+        () => getInstanceOutputs(instanceData),
+        10000
+      );
       const logsMonitor = setInterval(() => getInstanceLogs(), 7500);
       return () => {
+        getInstanceOutputs(instanceData);
+        getInstanceLogs();
         clearInterval(filesMonitor);
         clearInterval(logsMonitor);
       };
@@ -98,28 +112,52 @@ const InstanceComponent = ({
   // ------------------------------------
   // Handle instance deletion
   // ------------------------------------
-  const handleInstanceDelete = async () => {
-    await requestAPI<any>(`instances/${routerParams.id}`, {
+  const handleInstanceDelete = async (d: boolean) => {
+    const outcome = await requestAPI<any>(`instances/${routerParams.id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        delete: d
+      })
     });
-    navigate('/instances');
+    if (d && outcome.deleted) {
+      navigate('/instances');
+    }
   };
 
-  return instanceData ? (
+  const isRunning = ['LAUNCHED'].includes(instanceStatus);
+
+  if (!instanceData) {
+    return <div className={`instance ${className}`}>Loading...</div>;
+  }
+
+  return (
     <div className={`instance ${className}`}>
       <div className="instance-container">
         {/* Instance header */}
         <div className="instance-section instance-header">
-          <h2 className="instance-workflow">
-            Workflow: {instanceData.workflow}
-          </h2>
+          <div className="instance-header-top">
+            <h2 className="instance-workflow">
+              Workflow: {instanceData.workflow}
+            </h2>
+            {isRunning ? (
+              <button onClick={() => handleInstanceDelete(false)}>
+                Stop Instance
+              </button>
+            ) : (
+              ''
+            )}
+          </div>
           <h1>ID: {routerParams.id}</h1>
-          <div className="instance-status">
-            <StyledStatusIndicator status={instanceStatus || 'UNKNOWN'} />
-            <p>{instanceStatus}</p>
+          <div className="instance-details">
+            <div className="instance-status">
+              <StyledStatusIndicator status={instanceStatus || 'UNKNOWN'} />
+              <p>{instanceStatus}</p>
+            </div>
+            <p>Created: {instanceData.created_at}</p>
+            <p>Updated: {instanceData.updated_at}</p>
           </div>
         </div>
 
@@ -159,7 +197,7 @@ const InstanceComponent = ({
         <div className="instance-section instance-outputs">
           <h2>Output files</h2>
           <div className="instance-section-contents">
-            {instanceOutputs ? (
+            {instanceOutputs.length ? (
               <ul>
                 {instanceOutputs.map(Item => (
                   <li>
@@ -170,24 +208,26 @@ const InstanceComponent = ({
                 ))}
               </ul>
             ) : (
-              <div>No outputs yet...</div>
+              <div className="instance-section-contents">No outputs yet...</div>
             )}
           </div>
         </div>
 
         {/* Instance delete */}
         <div className="instance-section instance-delete">
-          <h2>Danger Zone</h2>
+          <h2>Danger zone</h2>
           <div className="instance-section-contents">
-            <button onClick={() => handleInstanceDelete()}>
-              Delete Instance
-            </button>
+            <div className={`${!isRunning ? 'active' : 'inactive'}`}>
+              <button
+                onClick={() => (!isRunning ? handleInstanceDelete(true) : null)}
+              >
+                Delete Instance
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  ) : (
-    <div className={`instance ${className}`}>Loading...</div>
   );
 };
 
@@ -222,16 +262,60 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     border-radius: 4px;
   }
 
-  .instance-status {
+  .instance-header-top {
     display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .instance-header-top h2 {
+    padding-bottom: 15px;
+  }
+
+  .instance-header-top button {
+    cursor: pointer;
+    padding: 8px 15px;
+    border: 1px solid #e34040;
+    color: #e34040;
+    text-transform: uppercase;
+    font-size: 11px;
+    border-radius: 4px;
+    font-weight: bold;
+    line-height: 1em;
+    letter-spacing: 0.05em;
+    transition: 0.2s ease-in-out all;
+    outline: none;
+    background-color: transparent;
+  }
+
+  .instance-header-top button:hover {
+    cursor: pointer;
+    background-color: #e34040;
+    color: white;
+  }
+
+  .instance-details {
+    display: flex;
+    align-items: center;
+  }
+
+  .instance-details p {
+    padding-left: 15px;
     text-transform: uppercase;
     font-size: 11px;
     font-weight: bold;
     line-height: 1em;
     letter-spacing: 0.05em;
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .instance-status {
+    display: flex;
     align-items: center;
   }
+
   .instance-status p {
+    color: black;
     padding-left: 15px;
   }
 
@@ -288,11 +372,10 @@ const StyledInstanceComponent = styled(InstanceComponent)`
   }
 
   .instance-delete button {
-    cursor: pointer;
     padding: 15px 25px;
     margin: 0 15px 0 0;
-    border: 1px solid #e34040;
-    color: #e34040;
+    border: 1px solid lightgray;
+    color: lightgray;
     text-transform: uppercase;
     font-size: 11px;
     border-radius: 4px;
@@ -303,7 +386,12 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     outline: none;
     background-color: transparent;
   }
-  .instance-delete button:hover {
+  .instance-delete .active button {
+    border: 1px solid #e34040;
+    color: #e34040;
+  }
+  .instance-delete .active button:hover {
+    cursor: pointer;
     background-color: #e34040;
     color: white;
   }

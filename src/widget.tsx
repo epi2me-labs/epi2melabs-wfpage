@@ -19,7 +19,7 @@ export class Launcher extends ReactWidget {
     super();
     this.docTrack = docTrack;
     this.addClass('jp-ReactWidget');
-    this.addClass('jupyterlab-nextflow-widget');
+    this.addClass('epi2melabs-wfpage-widget');
   }
 
   render(): JSX.Element {

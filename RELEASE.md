@@ -1,4 +1,4 @@
-# Making a new release of jupyterlab_nextflow
+# Making a new release of epi2melabs_wfpage
 
 The extension can be published to `PyPI` and `npm` manually or using the [Jupyter Releaser](https://github.com/jupyter-server/jupyter_releaser).
 

@@ -9,6 +9,7 @@ export const STR_INPUT = 'string';
 export interface ITextProps {
   id: string;
   label: string;
+  format: string;
   description: string;
   defaultValue: string;
   minLength?: number;
@@ -28,6 +29,7 @@ interface ITextInput extends ITextProps {
 const TextInput = ({
   id,
   label,
+  format,
   description,
   defaultValue,
   minLength,
@@ -49,7 +51,7 @@ const TextInput = ({
         pattern={pattern}
         minLength={minLength}
         maxLength={maxLength}
-        onChange={e => onChange(id, e.target.value)}
+        onChange={e => onChange(id, format, e.target.value)}
       />
     </label>
     {error ? (

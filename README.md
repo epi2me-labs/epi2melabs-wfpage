@@ -1,7 +1,7 @@
-# jupyterlab_nextflow
+# epi2melabs_wfpage
 
-This extension is composed of a Python package named `jupyterlab_nextflow`
-for the server extension and a NPM package named `jupyterlab-nextflow`
+This extension is composed of a Python package named `epi2melabs_wfpage`
+for the server extension and a NPM package named `epi2melabs-wfpage`
 for the frontend extension.
 
 
@@ -14,7 +14,7 @@ for the frontend extension.
 To install the extension, execute:
 
 ```bash
-pip install jupyterlab_nextflow
+pip install epi2melabs_wfpage
 ```
 
 ## Uninstall
@@ -22,7 +22,7 @@ pip install jupyterlab_nextflow
 To remove the extension, execute:
 
 ```bash
-pip uninstall jupyterlab_nextflow
+pip uninstall epi2melabs_wfpage
 ```
 
 
@@ -55,13 +55,13 @@ The `jlpm` command is JupyterLab's pinned version of
 
 ```bash
 # Clone the repo to your local environment
-# Change directory to the jupyterlab_nextflow directory
+# Change directory to the epi2melabs_wfpage directory
 # Install package in development mode
 pip install -e .
 # Link your development version of the extension with JupyterLab
 jupyter labextension develop . --overwrite
 # Server extension must be manually installed in develop mode
-jupyter server extension enable jupyterlab_nextflow
+jupyter server extension enable epi2melabs_wfpage
 # Rebuild extension Typescript source after making changes
 jlpm run build
 ```
@@ -87,13 +87,13 @@ jupyter lab build --minimize=False
 
 ```bash
 # Server extension must be manually disabled in develop mode
-jupyter server extension disable jupyterlab_nextflow
-pip uninstall jupyterlab_nextflow
+jupyter server extension disable epi2melabs_wfpage
+pip uninstall epi2melabs_wfpage
 ```
 
 In development mode, you will also need to remove the symlink created by `jupyter labextension develop`
 command. To find its location, you can run `jupyter labextension list` to figure out where the `labextensions`
-folder is located. Then you can remove the symlink named `jupyterlab-nextflow` within that folder.
+folder is located. Then you can remove the symlink named `epi2melabs-wfpage` within that folder.
 
 ### Packaging the extension
 

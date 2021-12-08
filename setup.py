@@ -1,5 +1,5 @@
 """
-jupyterlab_nextflow setup
+epi2melabs_wfpage setup
 """
 import json
 import sys
@@ -10,7 +10,7 @@ import setuptools
 HERE = Path(__file__).parent.resolve()
 
 # The name of the project
-name = "jupyterlab_nextflow"
+name = "epi2melabs_wfpage"
 
 lab_path = (HERE / name.replace("-", "_") / "labextension")
 
@@ -20,16 +20,16 @@ ensured_targets = [
     str(lab_path / "static/style.js")
 ]
 
-labext_name = "jupyterlab-nextflow"
+labext_name = "epi2melabs-wfpage"
 
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path.relative_to(HERE)), "**"),
     ("share/jupyter/labextensions/%s" % labext_name, str("."), "install.json"),
     ("etc/jupyter/jupyter_server_config.d",
-     "jupyter-config/server-config", "jupyterlab_nextflow.json"),
+     "jupyter-config/server-config", "epi2melabs_wfpage.json"),
     # For backward compatibility with notebook server
     ("etc/jupyter/jupyter_notebook_config.d",
-     "jupyter-config/nb-config", "jupyterlab_nextflow.json"),
+     "jupyter-config/nb-config", "epi2melabs_wfpage.json"),
 ]
 
 long_description = (HERE / "README.md").read_text()
@@ -56,7 +56,11 @@ setup_args = dict(
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
     install_requires=[
-        "jupyter_server>=1.6,<2"
+        "jupyter_server>=1.6,<2",
+        "jupyter-packaging",
+        "sqlalchemy",
+        "shortuuid",
+        "nf-core"
     ],
     zip_safe=False,
     include_package_data=True,
@@ -77,6 +81,12 @@ setup_args = dict(
         "Framework :: Jupyter :: JupyterLab :: Extensions",
         "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
     ],
+    entry_points={
+        'console_scripts': [
+            'invoke_nextflow=epi2melabs_wfpage.invoke:main',
+        ]
+    }
+
 )
 
 try:

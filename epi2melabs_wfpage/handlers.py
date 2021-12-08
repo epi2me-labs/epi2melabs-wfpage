@@ -2,10 +2,11 @@ import os
 import json
 import tornado.web
 from typing import Union
+from urllib import parse
 from jupyter_server.utils import url_path_join
-from jupyterlab_nextflow.launcher import Launcher
 from jupyter_server.base.handlers import APIHandler
-from jupyterlab_nextflow.config import JupyterlabNextflowConfig
+from epi2melabs_wfpage.config import Epi2melabsWFPage
+from epi2melabs_wfpage.launcher import get_workflow_launcher
 
 
 class LauncherAPIHandler(APIHandler):
@@ -73,33 +74,23 @@ class Params(LauncherAPIHandler):
 class File(LauncherAPIHandler):
 
     @tornado.web.authenticated
-    def get(self) -> None:
+    def get(self, path) -> None:
         """Get file"""
-        payload = self.get_json_body() or {}
-
-        if path := payload.get('path'):
-            self.finish(json.dumps({
-                'exists': os.path.isfile(path)}))
-            return
-
-        self.finish(json.dumps({}))
-        return
+        exists, error = self.launcher.validate_file_path(path)
+        self.finish(json.dumps({
+            'exists': exists,
+            'error': error}))
 
 
 class Directory(LauncherAPIHandler):
 
     @tornado.web.authenticated
-    def get(self) -> None:
+    def get(self, path) -> None:
         """Get directory"""
-        payload = self.get_json_body() or {}
-
-        if path := payload.get('path'):
-            self.finish(json.dumps({
-                'exists': os.path.isdir(path)}))
-            return
-
-        self.finish(json.dumps({}))
-        return
+        exists, error = self.launcher.validate_directory_path(path)
+        self.finish(json.dumps({
+            'exists': exists,
+            'error': error}))
 
 
 class Instance(LauncherAPIHandler):
@@ -137,7 +128,7 @@ class Instance(LauncherAPIHandler):
         name = payload['workflow']
         params = payload['params']
 
-        created, instance = self.launcher.launch(
+        created, instance = self.launcher.create_instance(
             name, params)
 
         self.finish(json.dumps({
@@ -152,54 +143,58 @@ class Instance(LauncherAPIHandler):
             self.finish(json.dumps({'deleted': False}))
             return
 
-        self.launcher.delete_instance(instance_id)
+        payload = self.get_json_body() or {}
+
+        self.launcher.delete_instance(
+            instance_id, delete=payload.get('delete', False))
         self.finish(json.dumps({'deleted': True}))
 
 
 def setup_handlers(web_app):
     host_pattern = ".*$"
     base_url = web_app.settings["base_url"]
-    jupyterlab_nextflow = "jupyterlab-nextflow"
+    epi2melabs_wfpage = "epi2melabs-wfpage"
 
     # Create the launcher
-    config = JupyterlabNextflowConfig(
+    config = Epi2melabsWFPage(
         config=web_app.settings['config_manager'].config)
 
-    launcher = {'launcher': Launcher(port=config.port)}
+    launcher = {'launcher': get_workflow_launcher(
+        None, remote=config.remote, ip=config.ip, port=config.port)}
 
     # Workflow get
     workflow_pattern = url_path_join(
-        base_url, jupyterlab_nextflow, r"workflows/([-A-Za-z0-9]+)")
+        base_url, epi2melabs_wfpage, r"workflows/([-A-Za-z0-9]+)")
     workflows_pattern = url_path_join(
-        base_url, jupyterlab_nextflow, r"workflows/?")
+        base_url, epi2melabs_wfpage, r"workflows/?")
 
     # Instance crd
     instance_pattern = url_path_join(
-        base_url, jupyterlab_nextflow, r"instances/([-A-Za-z0-9]+)")
+        base_url, epi2melabs_wfpage, r"instances/([-A-Za-z0-9]+)")
     instances_pattern = url_path_join(
-        base_url, jupyterlab_nextflow, r"instances/?")
+        base_url, epi2melabs_wfpage, r"instances/?")
 
     # Instance extras
     logs_pattern = url_path_join(
-        base_url, jupyterlab_nextflow, r"logs/([-A-Za-z0-9]+)")
+        base_url, epi2melabs_wfpage, r"logs/([-A-Za-z0-9]+)")
     params_pattern = url_path_join(
-        base_url, jupyterlab_nextflow, r"params/([-A-Za-z0-9]+)")
+        base_url, epi2melabs_wfpage, r"params/([-A-Za-z0-9]+)")
 
     # Filesystem
     file_pattern = url_path_join(
-        base_url, jupyterlab_nextflow, r"file/?")
+        base_url, epi2melabs_wfpage, r"file/([-A-Za-z0-9_%.]+)")
     directory_pattern = url_path_join(
-        base_url, jupyterlab_nextflow, r"directory/?")
+        base_url, epi2melabs_wfpage, r"directory/([-A-Za-z0-9_%.]+)")
 
     handlers = [
+        (file_pattern, File, launcher),
+        (directory_pattern, Directory, launcher),
         (workflow_pattern, Workflows, launcher),
         (workflows_pattern, Workflows, launcher),
         (instance_pattern, Instance, launcher),
         (instances_pattern, Instance, launcher),
         (logs_pattern, Logs, launcher),
         (params_pattern, Params, launcher),
-        (file_pattern, File, launcher),
-        (directory_pattern, Directory, launcher)
     ]
 
     web_app.add_handlers(host_pattern, handlers)

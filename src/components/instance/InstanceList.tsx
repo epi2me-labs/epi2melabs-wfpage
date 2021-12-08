@@ -44,6 +44,7 @@ const InstanceList = ({
   // ------------------------------------
   // Handle updating instances
   // ------------------------------------
+  // Note: this should be changed to a single get request
   const updateTrackedInstances = async () => {
     const tracked = await Promise.all(
       trackedInstances.map(async I => {
@@ -69,17 +70,34 @@ const InstanceList = ({
     };
   }, [trackedInstances]);
 
+  // ------------------------------------
+  // Handle displaying instances
+  // ------------------------------------
+  const sortInstances = (a: Instance, b: Instance) => {
+    if (a.created_at < b.created_at) {
+      return 1;
+    }
+    if (a.created_at > b.created_at) {
+      return -1;
+    }
+    return 0;
+  };
+
   const visibleInstances = onlyTracked ? trackedInstances : instances;
-  return visibleInstances.length !== 0 ? (
+  const sortedVisibleInstances = visibleInstances.sort(sortInstances);
+
+  return sortedVisibleInstances.length !== 0 ? (
     <div className={`instance-list ${className}`}>
       <ul>
-        {visibleInstances.map((Instance: Instance) => (
+        {sortedVisibleInstances.map((Instance: Instance) => (
           <li>
             <div className="instance">
               <div>
                 <div className="instance-header">
                   <h2>ID: {Instance.id}</h2>
-                  <span>{Instance.workflow}</span>
+                  <span>
+                    {Instance.workflow} | Created: {Instance.created_at}
+                  </span>
                 </div>
 
                 <div className="instance-bar">
@@ -160,15 +178,15 @@ const StyledInstanceList = styled(InstanceList)`
   h3 {
     font-size: 24px;
   }
-
   .instance span {
     color: #333;
   }
-
+  .instance-header h2 {
+    padding: 5px 0;
+  }
   .instance-header span {
     text-transform: uppercase;
     font-size: 12px;
-    padding-bottom: 5px;
     color: #a0a0a0;
   }
   .instance-header {

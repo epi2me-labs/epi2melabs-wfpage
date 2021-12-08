@@ -17,7 +17,7 @@ export async function requestAPI<T>(
   const settings = ServerConnection.makeSettings();
   const requestUrl = URLExt.join(
     settings.baseUrl,
-    'jupyterlab-nextflow', // API Namespace
+    'epi2melabs-wfpage', // API Namespace
     endPoint
   );
 

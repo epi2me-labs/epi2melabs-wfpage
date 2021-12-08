@@ -41,7 +41,7 @@ const WorkflowsList = ({ className }: IWorkflowsList): JSX.Element => {
                   <h3>{Workflow.name}</h3>
                 </div>
                 <div className="workflow-buttons">
-                  <a className="workflow-url" href="#">
+                  <a className="workflow-url" href={Workflow.url}>
                     Github
                   </a>
                   <Link

@@ -14,6 +14,7 @@ interface ISelectChoice {
 export interface ISelectProps {
   id: string;
   label: string;
+  format: string;
   description: string;
   defaultValue?: string;
   choices: ISelectChoice[];
@@ -31,6 +32,7 @@ interface ISelectInput extends ISelectProps {
 const SelectInput = ({
   id,
   label,
+  format,
   description,
   defaultValue,
   choices,
@@ -42,7 +44,10 @@ const SelectInput = ({
     <h4>{label}</h4>
     <p>{description}</p>
     <label htmlFor={id}>
-      <select id={id} onChange={(e: any) => onChange(id, e.target.value)}>
+      <select
+        id={id}
+        onChange={(e: any) => onChange(id, format, e.target.value)}
+      >
         {defaultValue ? (
           ''
         ) : (

@@ -3,7 +3,8 @@ import { WorkflowSchema } from './schema';
 import StyledBooleanInput, { IBooleanProps } from '../inputs/BooleanInput';
 import StyledSelectInput, { ISelectProps } from '../inputs/SelectInput';
 import StyledTextInput, { ITextProps } from '../inputs/TextInput';
-import StyledFileInput, { IFileProps } from '../inputs/FileInput';
+// import StyledFileInput, { IFileProps } from '../inputs/FileInput';
+import { IFileProps } from '../inputs/FileInput';
 import StyledNumInput, { INumProps } from '../inputs/NumInput';
 
 // -----------------------------------------------------------------------------
@@ -15,6 +16,7 @@ export const mapSchemaToBooleanInput = (
 ): IBooleanProps => ({
   id: id,
   label: id,
+  format: schema.format || '',
   description: schema.description || schema.help_text,
   defaultValue: schema.default
 });
@@ -36,9 +38,7 @@ export const mapSchemaToFileInput = (
 });
 
 export const isFileInput = (schema: WorkflowSchema): boolean =>
-  schema.type === 'string' && (schema.description || '').startsWith('File')
-    ? true
-    : false;
+  schema.type === 'string' && schema.format === 'file-path' ? true : false;
 
 // -----------------------------------------------------------------------------
 // Num input mapping
@@ -49,6 +49,7 @@ export const mapSchemaToNumInput = (
 ): INumProps => ({
   id: id,
   label: id,
+  format: schema.format || '',
   description: schema.description || schema.help_text,
   defaultValue: schema.default,
   min: schema.minimum,
@@ -67,6 +68,7 @@ export const mapSchemaToSelectInput = (
 ): ISelectProps => ({
   id: id,
   label: id,
+  format: schema.format || '',
   description: schema.description || schema.help_text,
   defaultValue: schema.default,
   choices: (schema.enum as string[]).map(Item => ({ value: Item, label: Item }))
@@ -84,6 +86,7 @@ export const mapSchemaToTextInput = (
 ): ITextProps => ({
   id: id,
   label: id,
+  format: schema.format || '',
   description: schema.description || schema.help_text,
   defaultValue: schema.default
 });
@@ -118,8 +121,8 @@ export const getInputComponent = (
     );
   } else if (isFileInput(schema)) {
     return (
-      <StyledFileInput
-        {...mapSchemaToFileInput(id, schema)}
+      <StyledTextInput
+        {...mapSchemaToTextInput(id, schema)}
         error={error}
         onChange={onChange}
       />

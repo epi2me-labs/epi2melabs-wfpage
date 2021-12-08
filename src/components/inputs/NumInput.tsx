@@ -10,6 +10,7 @@ export const INT_INPUT = 'integer';
 export interface INumProps {
   id: string;
   label: string;
+  format: string;
   description: string;
   defaultValue?: number;
   min: number;
@@ -28,6 +29,7 @@ interface INumInput extends INumProps {
 const NumInput = ({
   id,
   label,
+  format,
   description,
   defaultValue,
   min,
@@ -46,7 +48,7 @@ const NumInput = ({
         defaultValue={defaultValue}
         min={min}
         max={max}
-        onChange={(e: any) => onChange(id, Number(e.target.value))}
+        onChange={(e: any) => onChange(id, format, Number(e.target.value))}
       />
     </label>
     {error ? (

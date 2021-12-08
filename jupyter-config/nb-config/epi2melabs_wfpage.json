@@ -1,7 +1,7 @@
 {
   "NotebookApp": {
     "nbserver_extensions": {
-      "jupyterlab_nextflow": true
+      "epi2melabs_wfpage": true
     }
   }
 }

@@ -7,5 +7,7 @@ export type Instance = {
   path: string;
   status: string;
   workflow: string;
+  created_at: string;
+  updated_at: string;
   params: InstanceParams;
 };

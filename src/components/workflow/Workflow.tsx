@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { requestAPI } from '../../handler';
 import styled from 'styled-components';
-import { GenericStringObject } from '../../types';
 import { useParams, useNavigate } from 'react-router-dom';
+import { GenericStringObject, GenericObject } from '../../types';
 import { validateSchema, parseValidationErrors } from '../../schema';
 import StyledWorkflowParameterSection from './WorkflowParameterSection';
 import {
@@ -28,7 +28,8 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   const [workflowData, setWorkflowData] = useState<Workflow | undefined>();
   const [workflowParams, setWorkflowParams] = useState<WorkflowDefaults>({});
   const [workflowParamsValid, setWorkflowParamsValid] = useState(false);
-  const [workflowParamsErrors, setWorkflowParamsErrors] = useState({});
+  const [workflowParamsErrors, setWorkflowParamsErrors] =
+    useState<GenericObject>({});
   const [workflowActiveSections, setWorkflowActiveSections] = useState<
     ParameterSection[]
   >([]);
@@ -90,13 +91,35 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
       {}
     );
 
-  const handleInputChange = (id: string, value: any): void => {
+  const handleInputChange = (id: string, format: string, value: any) => {
     if (value === '') {
       const { [id]: _, ...rest } = workflowParams;
       setWorkflowParams(rest);
       return;
     }
+    if (['file-path', 'directory-path'].includes(format)) {
+      const fmt = format === 'file-path' ? 'file' : 'directory';
+      validatePath(id, value, fmt);
+      return;
+    }
     setWorkflowParams({ ...workflowParams, [id]: value });
+  };
+
+  const validatePath = async (id: string, path: string, format = 'file') => {
+    const encodedPath = encodeURIComponent(path);
+    const data = await requestAPI<any>(`${format}/${encodedPath}`, {
+      method: 'GET'
+    });
+    if (!data.exists) {
+      setWorkflowParamsErrors({
+        ...workflowParamsErrors,
+        [id]: [data.error]
+      });
+      setWorkflowParamsValid(false);
+      return;
+    }
+    setWorkflowParamsErrors({ ...workflowParamsErrors, [id]: [] });
+    setWorkflowParams({ ...workflowParams, [id]: path });
   };
 
   useEffect(() => {
@@ -116,10 +139,7 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   // Handle workflow launch
   // ------------------------------------
   const launchWorkflow = async () => {
-    console.log(workflowParams);
-    console.log(workflowParamsErrors);
     if (!workflowParamsValid) {
-      console.log('this is me');
       return;
     }
     const { instance } = await requestAPI<any>('instances', {
@@ -140,11 +160,11 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
       <div className="workflow-container">
         {/* Workflow header */}
         <div className="workflow-section workflow-header">
-          <h2 className="workflow-version">
-            Version {workflowData.defaults.wfversion}
-          </h2>
           <h1>Workflow: {params.name}</h1>
-          <p>{workflowData.description}</p>
+          <div className="workflow-details">
+            <div>{workflowData.desc}</div>
+            <div>Version {workflowData.defaults.wfversion}</div>
+          </div>
         </div>
 
         {/* Workflow params */}
@@ -217,6 +237,13 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
     padding-bottom: 15px;
   }
 
+  .workflow-details div {
+    color: #333;
+    font-weight: normal;
+    font-size: 14px;
+    padding-bottom: 5px;
+  }
+
   .workflow-parameter-sections .workflow-section-contents > ul > li {
     background-color: #f6f6f6;
     padding: 15px;
@@ -231,11 +258,10 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
   }
 
   .workflow-launch-control button {
-    cursor: pointer;
     padding: 15px 25px;
     margin: 0 15px 0 0;
-    border: 1px solid #1d9655;
-    color: #1d9655;
+    border: 1px solid lightgray;
+    color: lightgray;
     text-transform: uppercase;
     font-size: 11px;
     border-radius: 4px;
@@ -246,7 +272,13 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
     outline: none;
     background-color: transparent;
   }
-  .workflow-launch-control button:hover {
+
+  .workflow-launch-control .active button {
+    border: 1px solid #1d9655;
+    color: #1d9655;
+  }
+  .workflow-launch-control .active button:hover {
+    cursor: pointer;
     background-color: #1d9655;
     color: white;
   }

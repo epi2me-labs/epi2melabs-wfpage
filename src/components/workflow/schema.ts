@@ -24,9 +24,10 @@ export type WorkflowSchema = {
 };
 
 export type Workflow = {
+  url: string;
   name: string;
   path: string;
-  description: string;
+  desc: string;
   schema: WorkflowSchema;
   defaults: WorkflowDefaults;
 };

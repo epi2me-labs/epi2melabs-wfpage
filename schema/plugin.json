@@ -1,7 +1,7 @@
 {
   "jupyter.lab.shortcuts": [],
-  "title": "jupyterlab-nextflow",
-  "description": "jupyterlab-nextflow settings.",
+  "title": "epi2melabs-wfpage",
+  "description": "epi2melabs-wfpage settings.",
   "type": "object",
   "properties": {
     "port": {

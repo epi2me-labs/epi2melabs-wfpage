@@ -3,8 +3,8 @@ requires = ["jupyter_packaging~=0.10,<2", "jupyterlab~=3.1"]
 build-backend = "jupyter_packaging.build_api"
 
 [tool.jupyter-packaging.options]
-skip-if-exists = ["jupyterlab_nextflow/labextension/static/style.js"]
-ensured-targets = ["jupyterlab_nextflow/labextension/static/style.js", "jupyterlab_nextflow/labextension/package.json"]
+skip-if-exists = ["epi2melabs_wfpage/labextension/static/style.js"]
+ensured-targets = ["epi2melabs_wfpage/labextension/static/style.js", "epi2melabs_wfpage/labextension/package.json"]
 
 [tool.jupyter-packaging.builder]
 factory = "jupyter_packaging.npm_builder"
@@ -14,4 +14,4 @@ build_cmd = "build:prod"
 npm = ["jlpm"]
 
 [tool.check-manifest]
-ignore = ["jupyterlab_nextflow/labextension/**", "yarn.lock", ".*", "package-lock.json"]
+ignore = ["epi2melabs_wfpage/labextension/**", "yarn.lock", ".*", "package-lock.json"]

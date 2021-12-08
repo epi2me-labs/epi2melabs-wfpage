@@ -15,14 +15,14 @@ import { labsLogoIcon } from './asset';
 
 import { Launcher } from './widget';
 
-const PLUGIN_ID = 'jupyterlab-nextflow:plugin';
+const PLUGIN_ID = 'epi2melabs-wfpage:plugin';
 
 const COMMAND = 'create-epi2me-labs-launcher';
 
 const CATEGORY = 'EPI2ME Labs';
 
 /**
- * Initialization data for the jupyterlab-nextflow extension.
+ * Initialization data for the epi2melabs-wfpage extension.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
   id: PLUGIN_ID,

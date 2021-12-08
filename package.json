@@ -1,5 +1,5 @@
 {
-  "name": "jupyterlab-nextflow",
+  "name": "epi2melabs-wfpage",
   "version": "0.1.0",
   "description": "A jupyterlab launcher for Nextflow workflows",
   "keywords": [
@@ -7,9 +7,9 @@
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/epi2me-labs/jupyterlab-nextflow",
+  "homepage": "https://github.com/epi2me-labs/epi2melabs-wfpage",
   "bugs": {
-    "url": "https://github.com/epi2me-labs/jupyterlab-nextflow/issues"
+    "url": "https://github.com/epi2me-labs/epi2melabs-wfpage/issues"
   },
   "license": "BSD-3-Clause",
   "author": {
@@ -26,7 +26,7 @@
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/epi2me-labs/jupyterlab-nextflow.git"
+    "url": "https://github.com/epi2me-labs/epi2melabs-wfpage.git"
   },
   "scripts": {
     "build": "jlpm run build:lib && jlpm run build:labextension:dev",
@@ -36,7 +36,7 @@
     "build:lib": "tsc",
     "clean": "jlpm run clean:lib",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
-    "clean:labextension": "rimraf jupyterlab_nextflow/labextension",
+    "clean:labextension": "rimraf epi2melabs_wfpage/labextension",
     "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
     "eslint": "eslint . --ext .ts,.tsx --fix",
     "eslint:check": "eslint . --ext .ts,.tsx",
@@ -46,10 +46,14 @@
     "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.36",
     "@fortawesome/free-brands-svg-icons": "^5.15.4",
+    "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@fortawesome/react-fontawesome": "^0.1.16",
     "@jupyterlab/application": "^3.1.0",
     "@jupyterlab/coreutils": "^5.1.0",
     "@jupyterlab/docmanager": "^3.2.3",
+    "@jupyterlab/launcher": "^3.2.4",
     "@jupyterlab/services": "^6.1.0",
     "@jupyterlab/settingregistry": "^3.1.0",
     "@types/styled-components": "^5.1.15",
@@ -85,12 +89,12 @@
           "pip"
         ],
         "base": {
-          "name": "jupyterlab_nextflow"
+          "name": "epi2melabs_wfpage"
         }
       }
     },
     "extension": true,
-    "outputDir": "jupyterlab_nextflow/labextension",
+    "outputDir": "epi2melabs_wfpage/labextension",
     "schemaDir": "schema"
   },
   "jupyter-releaser": {
