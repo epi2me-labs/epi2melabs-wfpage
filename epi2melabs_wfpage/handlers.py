@@ -74,6 +74,17 @@ class Params(LauncherAPIHandler):
         self.finish(json.dumps({}))
 
 
+class Path(LauncherAPIHandler):
+
+    @tornado.web.authenticated
+    def get(self, path) -> None:
+        """Get path"""
+        exists, error = self.launcher.validate_path(path)
+        self.finish(json.dumps({
+            'exists': exists,
+            'error': error}))
+
+
 class File(LauncherAPIHandler):
 
     @tornado.web.authenticated
@@ -169,8 +180,8 @@ def setup_handlers(web_app):
         config=web_app.settings['config_manager'].config)
 
     launcher = {'launcher': get_workflow_launcher(
-        base_dir=config.base_dir, remote=config.remote,
-        ip=config.ip, port=config.port)}
+        base_dir=config.base_dir, workflows_dir=config.workflows_dir,
+        remote=config.remote, ip=config.ip, port=config.port)}
 
     # Workflow get
     workflow_pattern = url_path_join(
@@ -191,12 +202,15 @@ def setup_handlers(web_app):
         base_url, epi2melabs_wfpage, r"params/([-A-Za-z0-9]+)")
 
     # Filesystem
+    path_pattern = url_path_join(
+        base_url, epi2melabs_wfpage, r"path/([-A-Za-z0-9_%.]+)")
     file_pattern = url_path_join(
         base_url, epi2melabs_wfpage, r"file/([-A-Za-z0-9_%.]+)")
     directory_pattern = url_path_join(
         base_url, epi2melabs_wfpage, r"directory/([-A-Za-z0-9_%.]+)")
 
     handlers = [
+        (path_pattern, Path, launcher),
         (file_pattern, File, launcher),
         (directory_pattern, Directory, launcher),
         (workflow_pattern, Workflows, launcher),

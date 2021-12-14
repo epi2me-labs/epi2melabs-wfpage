@@ -46,13 +46,13 @@ class WorkflowLauncher(object):
     PARAMS: str = 'params.json'
     SCHEMA: str = 'nextflow_schema.json'
     
-    def __init__(self, base_dir=None) -> None:
+    def __init__(self, base_dir=None, workflows_dir=None) -> None:
         self._workflows: Dict[str, Workflow] = {}
 
         self.orig_dir = base_dir or 'epi2melabs'
         self.base_dir = base_dir or os.path.join(os.getcwd(), 'epi2melabs')
+        self.workflows_dir = workflows_dir or os.path.join(self.base_dir, 'workflows')
         self.instance_dir = os.path.join(self.base_dir, 'instances')
-        self.workflows_dir = os.path.join(self.base_dir, 'workflows')
         self.database_uri = f'sqlite:///{self.base_dir}/db.sqlite'
 
         self.get_or_create_dir(self.base_dir)
@@ -182,7 +182,6 @@ class WorkflowLauncher(object):
             pass
 
         # Coerce params accordingly
-        # params = self._coerce_dict_to_int(**params)
         params = self._fix_parameters(workflow_name, **params)
         params['out_dir'] = out_dir # Todo: generalise to support 3rd party wfs
 
@@ -269,6 +268,17 @@ class WorkflowLauncher(object):
             errors[split_message[1]] = error.message
         return bool(errors), errors
 
+    def validate_path(self, path: str) -> Tuple[bool, str]:
+        is_file, error = self.validate_file_path(path)
+        if is_file:
+            return is_file, ''
+
+        is_dir, error = self.validate_directory_path(path)
+        if is_dir:
+           return is_dir, ''
+
+        return False, error
+
     def validate_file_path(self, path: str) -> Tuple[bool, str]:
         return self._validate_path(path, os.path.isfile, 'file')
 
@@ -309,7 +319,7 @@ class WorkflowLauncher(object):
     def _fix_parameters(self, workflow_name, **params):
         coerced = {}
         for param_key, param_value in params.items():
-            schema = self._get_schema_for_param(workflow_name, param_key) 
+            schema = self._get_schema_for_param(workflow_name, param_key)
             fmt = schema.get('format')
             if fmt in ['file-path', 'directory-path']:
                 path = param_value
@@ -339,11 +349,12 @@ class WorkflowLauncher(object):
 
 class RemoteWorkflowLauncher(WorkflowLauncher):
 
-    def __init__(self, base_dir, ip: str = '0.0.0.0', port: str = '8090'):
+    def __init__(self, base_dir, workflows_dir,
+        ip: str = '0.0.0.0', port: str = '8090'):
         self.ip = ip
         self.port = port
 
-        super().__init__(base_dir)
+        super().__init__(base_dir, workflows_dir)
 
     def create_instance(
         self, workflow_name: str, params: Dict) -> Tuple[bool, Dict]:
@@ -383,12 +394,14 @@ class RemoteWorkflowLauncher(WorkflowLauncher):
         return data.get('exists', False), data.get('error', 'Cannot see dir')
 
 
-def get_workflow_launcher(base_dir, remote=False, ip=None, port=None):
+def get_workflow_launcher(
+    base_dir, workflows_dir, remote=False, ip=None, port=None):
+
     if remote:
         kwargs = {'ip': ip, 'port': port}
         for k, v in kwargs.items():
             if v is None:
                 kwargs.pop(k)
-        return RemoteWorkflowLauncher(base_dir, **kwargs)
+        return RemoteWorkflowLauncher(base_dir, workflows_dir, **kwargs)
 
-    return WorkflowLauncher(base_dir)
+    return WorkflowLauncher(base_dir, workflows_dir)

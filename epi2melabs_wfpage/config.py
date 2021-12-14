@@ -13,7 +13,12 @@ class Epi2melabsWFPage(Configurable):
 
     base_dir = Unicode(
         config=True,
-        help="Sets the base directory to be used for storing workflows data."
+        help="Sets the base directory to be used for storing server data."
+    )
+
+    workflows_dir = Unicode(
+        config=True,
+        help="Sets the directory to be used for storing workflows."
     )
 
     ip = Unicode(

@@ -97,8 +97,18 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
       setWorkflowParams(rest);
       return;
     }
-    if (['file-path', 'directory-path'].includes(format)) {
-      const fmt = format === 'file-path' ? 'file' : 'directory';
+    if (['file-path', 'directory-path', 'path'].includes(format)) {
+      let fmt;
+      switch (format) {
+        case 'file-path':
+          fmt = 'file';
+          break;
+        case 'directory-path':
+          fmt = 'directory';
+          break;
+        default:
+          fmt = 'path';
+      }
       validatePath(id, value, fmt);
       return;
     }
