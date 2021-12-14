@@ -5,13 +5,24 @@ body {
     box-sizing: border-box;
 }
   
-ul {
+.epi2melabs-wfpage-widget ul {
     padding: 0;
     margin: 0;
     list-style: none;
 }
 
-h1, h2, h3, h4, h5, p, a, div, span, li, label, button {
+.epi2melabs-wfpage-widget h1,
+.epi2melabs-wfpage-widget h2,
+.epi2melabs-wfpage-widget h3,
+.epi2melabs-wfpage-widget h4,
+.epi2melabs-wfpage-widget h5,
+.epi2melabs-wfpage-widget p,
+.epi2melabs-wfpage-widget a,
+/* .epi2melabs-wfpage-widget div, */
+.epi2melabs-wfpage-widget span,
+.epi2melabs-wfpage-widget li,
+.epi2melabs-wfpage-widget label,
+.epi2melabs-wfpage-widget button {
     margin: 0;
     padding: 0;
     font-family: "HelveticaNeueLT",  Helvetica, Arial, sans-serif;
@@ -19,16 +30,18 @@ h1, h2, h3, h4, h5, p, a, div, span, li, label, button {
     list-style: none;
 }
 
-h1 {
+.epi2melabs-wfpage-widget h1 {
     padding: 15px 0;
     font-size: 36px;
     font-weight: normal;
 }
-h2 {
+
+.epi2melabs-wfpage-widget h2 {
     font-size: 18px;
     font-weight: normal;
 }
-h3 {
+
+.epi2melabs-wfpage-widget h3 {
     font-weight: normal;
     font-size: 12px;
 }
