@@ -15,7 +15,7 @@ import { labsLogoIcon } from './asset';
 
 import { Launcher } from './widget';
 
-const PLUGIN_ID = 'epi2melabs-wfpage:plugin';
+const PLUGIN_ID = '@epi2melabs/epi2melabs-wfpage:plugin';
 
 const COMMAND = 'create-epi2me-labs-launcher';
 
