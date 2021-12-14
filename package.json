@@ -1,5 +1,5 @@
 {
-  "name": "epi2melabs-wfpage",
+  "name": "@epi2melabs/epi2melabs-wfpage",
   "version": "0.1.0",
   "description": "A jupyterlab launcher for Nextflow workflows",
   "keywords": [
