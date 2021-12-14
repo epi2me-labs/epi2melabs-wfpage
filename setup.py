@@ -57,9 +57,7 @@ setup_args = dict(
     install_requires=[
         "jupyter_server>=1.6,<2",
         "jupyter-packaging",
-        "sqlalchemy",
-        "shortuuid",
-        "nf-core"
+        "epi2melabs"
     ],
     zip_safe=False,
     include_package_data=True,
@@ -79,13 +77,7 @@ setup_args = dict(
         "Framework :: Jupyter :: JupyterLab :: 3",
         "Framework :: Jupyter :: JupyterLab :: Extensions",
         "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
-    ],
-    entry_points={
-        'console_scripts': [
-            'invoke_nextflow=epi2melabs_wfpage.invoke:main',
-        ]
-    }
-
+    ]
 )
 
 try:
