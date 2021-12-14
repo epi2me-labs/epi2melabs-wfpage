@@ -5,7 +5,7 @@ from typing import Union
 from jupyter_server.utils import url_path_join
 from jupyter_server.base.handlers import APIHandler
 from epi2melabs_wfpage.config import Epi2melabsWFPage
-from epi2melabs.workflows.launcher import RemoteWorkflowLauncher, get_workflow_launcher
+from epi2melabs.workflows.launcher import get_workflow_launcher
 
 
 class LauncherAPIHandler(APIHandler):
