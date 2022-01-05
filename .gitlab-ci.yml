@@ -23,7 +23,7 @@ stages:
 
 # Insist that the version in __init__.py matches the git tag
 .check-versions: &check-versions |
-    PYVER="v"$(grep '"version": ' ${CI_PROJECT_NAME}/package.json | awk '{gsub("\"|,","",$2); print $2}')
+    PYVER="v"$(grep '"version": ' package.json | awk '{gsub("\"|,","",$2); print $2}')
     TAGVER=${CI_COMMIT_TAG}
     if [[ "${PYVER}" != "${TAGVER}" ]]; then
         echo "Mismatching TAG and PACKAGE versions:"
