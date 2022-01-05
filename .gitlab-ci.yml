@@ -9,7 +9,7 @@ image: ${UBUNTUIMAGE}:20.04
     apt update -qq
     apt install -y --no-install-recommends wget python3-all-dev python3-venv
     python3 -m venv venv
-    source ./venv/bin/activate && pip install setuptools twine wheel
+    source ./venv/bin/activate && pip install setuptools build twine wheel
 
 
 stages:
