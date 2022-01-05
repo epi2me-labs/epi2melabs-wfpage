@@ -1,0 +1,74 @@
+include:
+    - project: "epi2melabs/ci-templates"
+      file: "push-github.yaml"
+
+image: ${UBUNTUIMAGE}:20.04
+
+.prep-image: &prep-image |
+    export DEBIAN_FRONTEND=noninteractive
+    apt update -qq
+    apt install -y --no-install-recommends wget python3-all-dev
+
+
+stages:
+    - test
+    - build
+    - prerelease
+    - release
+    - postrelease
+
+# Insist that the version in __init__.py matches the git tag
+.check-versions: &check-versions |
+    PYVER="v"$(grep '"version": ' ${CI_PROJECT_NAME}/package.json | awk '{gsub("\"|,","",$2); print $2}')
+    TAGVER=${CI_COMMIT_TAG}
+    if [[ "${PYVER}" != "${TAGVER}" ]]; then
+        echo "Mismatching TAG and PACKAGE versions:"
+        echo " -     TAG:'$TAGVER'"
+        echo " - PACKAGE:'$TAGVER'"
+        exit 1
+    else
+        echo "TAG and PACKAGE versions agree: '${PYVER}'"
+    fi
+
+# Insist a CHANGELOG entry has been made for tags
+.check-changelog: &check-changelog |
+    TAGVER=${CI_COMMIT_TAG}
+    MATCHES=$(grep -c "## \[${TAGVER}\]" CHANGELOG.md || exit 0)
+    if [[ "${MATCHES}" != "1" ]]; then
+        echo "Expected one match to '${CI_COMMIT_TAG}' in CHANGELOG, found ${MATCHES}"
+        exit 1
+    else
+        echo "Found CHANGELOG.md entry for tag"
+    fi
+
+test:
+    stage: test
+    script:
+        - *prep-image
+        - python -m build
+    artifacts:
+        paths:
+            - dist/*.tar.gz
+
+deploy-checks:
+    stage: prerelease
+    script:
+        - *check-versions
+        - *check-changelog
+    rules:
+        - if: '$CI_COMMIT_TAG =~ /^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$/'
+
+deploy:pypi:
+    stage: release
+    script:
+        - *prep-image
+        - python -m build
+        - twine upload --non-interactive dist/*
+    rules:
+        - if: '$CI_COMMIT_TAG =~ /^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$/'
+
+deploy:trigger:
+    stage: postrelease
+    trigger: epi2melabs/nanolabs
+    rules:
+        - if: '$CI_COMMIT_TAG =~ /^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$/'
