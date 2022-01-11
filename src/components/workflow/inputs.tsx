@@ -4,7 +4,6 @@ import StyledBooleanInput, { IBooleanProps } from '../inputs/BooleanInput';
 import StyledSelectInput, { ISelectProps } from '../inputs/SelectInput';
 import StyledTextInput, { ITextProps } from '../inputs/TextInput';
 import StyledFileInput from '../inputs/FileInput';
-// import { IFileProps } from '../inputs/FileInput';
 import StyledNumInput, { INumProps } from '../inputs/NumInput';
 
 // -----------------------------------------------------------------------------
@@ -38,7 +37,10 @@ export const isBooleanInput = (schema: WorkflowSchema): boolean =>
 // });
 
 export const isFileInput = (schema: WorkflowSchema): boolean =>
-  schema.type === 'string' && schema.format === 'file-path' ? true : false;
+  schema.type === 'string' &&
+  ['file-path', 'directory-path', 'path'].includes(schema.format)
+    ? true
+    : false;
 
 // -----------------------------------------------------------------------------
 // Num input mapping

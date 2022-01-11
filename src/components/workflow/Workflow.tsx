@@ -223,7 +223,7 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
   }
 
   .workflow-parameter-sections .workflow-section-contents > ul > li {
-    background-color: #f6f6f6;
+    background-color: #fafafa;
     padding: 15px;
     margin: 0 0 15px 0;
     border-radius: 4px;

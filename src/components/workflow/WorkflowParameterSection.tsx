@@ -45,7 +45,10 @@ const ParameterSectionComponent = ({
   return (
     <div className={`parameter-section ${className}`}>
       <div className={`parameter-section-container ${isValid ? 'valid' : ''}`}>
-        <button onClick={() => setIsOpen(!isOpen)}>
+        <button
+          className="parameter-section-toggle"
+          onClick={() => setIsOpen(!isOpen)}
+        >
           <h3>
             {typeof fa_icon === 'string' ? (
               <FontAwesomeIcon
@@ -81,10 +84,11 @@ const ParameterSectionComponent = ({
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledParameterSectionComponent = styled(ParameterSectionComponent)`
-  .parameter-section-container button {
+  .parameter-section-toggle {
+    box-sizing: border-box;
     width: 100%;
     display: flex;
-    padding: 15px 0;
+    padding: 15px;
     justify-content: space-between;
     align-items: center;
     border: none;
@@ -93,21 +97,23 @@ const StyledParameterSectionComponent = styled(ParameterSectionComponent)`
     cursor: pointer;
   }
 
-  .parameter-section-container button h3 svg {
+  .parameter-section-toggle h3 svg {
     margin-right: 15px;
   }
 
-  .parameter-section-container button h3 {
+  .parameter-section-toggle h3 {
     font-size: 16px;
     font-weight: normal;
     color: #e34040;
   }
 
-  .parameter-section-container.valid button h3 {
+  .parameter-section-container.valid .parameter-section-toggle h3 {
     color: black;
   }
 
   .parameter-section-items {
+    display: block;
+    padding: 15px 15px 0 15px;
     transition: 0.2s ease-in-out all;
   }
 

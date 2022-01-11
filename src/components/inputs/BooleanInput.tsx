@@ -72,21 +72,44 @@ const BooleanInput = ({
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledBooleanInput = styled(BooleanInput)`
-  .input-container {
-    margin: 25px 0 0 0;
-    padding: 25px;
-    background-color: #1e1e1e;
-    border-radius: 4px;
+  h4 {
+    padding: 0 0 5px 0;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: black;
   }
 
   p {
-    padding: 15px 0;
-    margin: 0 0 10px 0;
+    padding: 0 0 10px 0;
+    font-size: 13px;
+    color: #333;
   }
 
   label {
-    padding: 15px 0 0 0;
     position: relative;
+    display: flex;
+  }
+
+  label span {
+    margin: 0;
+    padding: 15px 25px;
+
+    font-size: 20px;
+    font-family: monospace;
+    letter-spacing: 0.05em;
+    line-height: 1em;
+
+    color: black;
+    background-color: #f3f3f3;
+    border: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    outline: none;
+
+    cursor: pointer;
+    transition: 0.2s ease-in-out all;
+    -moz-appearance: textfield;
   }
 
   input {
@@ -96,44 +119,18 @@ const StyledBooleanInput = styled(BooleanInput)`
     opacity: 0;
   }
 
-  label span {
-    cursor: pointer;
-    border: 0;
-    padding: 0;
-    margin: 0;
-    transition: 0.2s ease-in-out all;
+  .error p {
+    padding: 15px 0 0 0;
+    color: #e34040;
   }
 
-  label span {
-    margin-right: 15px;
-    cursor: pointer;
-    outline: none;
-    background-color: transparent;
-    padding: 10px 15px;
-    border: 1px solid black;
-    color: black;
-    text-transform: uppercase;
-    font-size: 11px;
-    border-radius: 4px;
-    font-weight: bold;
-    line-height: 1em;
-    letter-spacing: 0.05em;
-    transition: 0.2s ease-in-out all;
-    -moz-appearance: textfield;
-  }
-
-  label span {
-    font-size: 20px;
+  label span:hover {
+    border: 1px solid #005c75;
   }
 
   input:checked + span {
-    background-color: black;
+    background-color: #005c75;
     color: white;
-  }
-
-  .error {
-    padding: 15px 0 0 0;
-    color: #e34040;
   }
 `;
 
