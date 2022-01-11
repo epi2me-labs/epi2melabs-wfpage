@@ -68,39 +68,49 @@ const TextInput = ({
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledTextInput = styled(TextInput)`
-  .input-container {
-    margin: 25px 0 0 0;
-    padding: 25px;
-    background-color: #1e1e1e;
-    border-radius: 4px;
-  }
-
-  .input-container p {
-    padding: 15px 0;
-  }
-
-  input {
-    border: 0;
-    padding: 0;
-    margin: 0;
-    transition: 0.2s ease-in-out all;
-  }
-  input {
-    min-width: 50%;
-    margin-right: 15px;
-    outline: none;
-    background-color: transparent;
-    padding: 15px 25px;
-    border: 1px solid black;
+  h4 {
+    padding: 0 0 5px 0;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
     color: black;
-    font-size: 11px;
-    border-radius: 4px;
-    line-height: 1em;
+  }
+
+  p {
+    padding: 0 0 10px 0;
+    font-size: 13px;
+    color: #333;
+  }
+
+  label {
+    display: flex;
+  }
+
+  input {
+    margin: 0;
+    min-width: 50%;
+    padding: 15px 25px;
+
+    font-size: 12px;
+    font-family: monospace;
     letter-spacing: 0.05em;
+    line-height: 1em;
+
+    color: black;
+    background-color: #f3f3f3;
+    border: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    outline: none;
+
     transition: 0.2s ease-in-out all;
   }
 
-  .error {
+  input:hover {
+    border: 1px solid #005c75;
+  }
+
+  .error p {
     padding: 15px 0 0 0;
     color: #e34040;
   }

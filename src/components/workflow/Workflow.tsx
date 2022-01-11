@@ -97,39 +97,7 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
       setWorkflowParams(rest);
       return;
     }
-    if (['file-path', 'directory-path', 'path'].includes(format)) {
-      let fmt;
-      switch (format) {
-        case 'file-path':
-          fmt = 'file';
-          break;
-        case 'directory-path':
-          fmt = 'directory';
-          break;
-        default:
-          fmt = 'path';
-      }
-      validatePath(id, value, fmt);
-      return;
-    }
     setWorkflowParams({ ...workflowParams, [id]: value });
-  };
-
-  const validatePath = async (id: string, path: string, format = 'file') => {
-    const encodedPath = encodeURIComponent(path);
-    const data = await requestAPI<any>(`${format}/${encodedPath}`, {
-      method: 'GET'
-    });
-    if (!data.exists) {
-      setWorkflowParamsErrors({
-        ...workflowParamsErrors,
-        [id]: [data.error]
-      });
-      setWorkflowParamsValid(false);
-      return;
-    }
-    setWorkflowParamsErrors({ ...workflowParamsErrors, [id]: [] });
-    setWorkflowParams({ ...workflowParams, [id]: path });
   };
 
   useEffect(() => {
@@ -255,7 +223,7 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
   }
 
   .workflow-parameter-sections .workflow-section-contents > ul > li {
-    background-color: #f6f6f6;
+    background-color: #fafafa;
     padding: 15px;
     margin: 0 0 15px 0;
     border-radius: 4px;

@@ -102,9 +102,11 @@ class Directory(LauncherAPIHandler):
     def get(self, path) -> None:
         """Get directory"""
         exists, error = self.launcher.validate_directory_path(path)
-        self.finish(json.dumps({
-            'exists': exists,
-            'error': error}))
+        resp = {'exists': exists, 'error': error}
+        if self.get_argument("contents", None, True) and exists:
+            contents = self.launcher.list_dir(path)
+            resp['contents'] = contents
+        self.finish(json.dumps(resp))
 
 
 class Instance(LauncherAPIHandler):

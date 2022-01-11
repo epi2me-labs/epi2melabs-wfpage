@@ -1,102 +1,382 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFolder, faFile } from '@fortawesome/free-solid-svg-icons';
+import { requestAPI } from '../../handler';
 import styled from 'styled-components';
 
 // -----------------------------------------------------------------------------
 // Type definitions
 // -----------------------------------------------------------------------------
 export const FILE_INPUT = 'file';
+export const DIR_INPUT = 'dir';
+export const PATH_INPUT = 'path';
 
-export interface IFileProps {
+export interface IFileSettings {
   id: string;
   label: string;
+  format: string;
   description: string;
   defaultValue?: string;
-  accept?: string;
-  multiple: boolean;
+  pattern?: string;
 }
 
-// -----------------------------------------------------------------------------
-// Component
-// -----------------------------------------------------------------------------
-interface IFileInput extends IFileProps {
+interface IFileInput extends IFileSettings {
   error: string[];
   onChange: CallableFunction;
   className?: string;
 }
 
+interface IPath {
+  name: string;
+  path: string;
+  updated: string;
+  dir: boolean;
+}
+
+// -----------------------------------------------------------------------------
+// Helper methods
+// -----------------------------------------------------------------------------
+const setNativeValue = (element: any, value: any) => {
+  const valueSetter = Object.getOwnPropertyDescriptor(element, 'value')?.set;
+  const prototype = Object.getPrototypeOf(element);
+  const prototypeValueSetter = Object.getOwnPropertyDescriptor(
+    prototype,
+    'value'
+  )?.set;
+
+  if (valueSetter && valueSetter !== prototypeValueSetter) {
+    prototypeValueSetter?.call(element, value);
+  } else {
+    valueSetter?.call(element, value);
+  }
+};
+
+const mapFormatToEndpoint = (format: string) => {
+  let fmt;
+  switch (format) {
+    case 'file-path':
+      fmt = 'file';
+      break;
+    case 'directory-path':
+      fmt = 'directory';
+      break;
+    default:
+      fmt = 'path';
+  }
+  return fmt;
+};
+
+const getDirContents = async (path: string) => {
+  const encodedPath = encodeURIComponent(path);
+  const data = await requestAPI<any>(`directory/${encodedPath}?contents=true`, {
+    method: 'GET'
+  });
+  return data.contents;
+};
+
+const getParentDir = (path: string) => {
+  const parent = path.split('/').slice(0, -1).join('/');
+  if (parent === '') {
+    return '/';
+  }
+  return parent;
+};
+
+// -----------------------------------------------------------------------------
+// Component
+// -----------------------------------------------------------------------------
 const FileInput = ({
   id,
   label,
+  format,
   description,
   defaultValue,
-  accept,
-  multiple,
+  pattern,
   error,
   onChange,
   className
-}: IFileInput) => (
-  <div className={`FileInput ${className}`}>
-    <h4>{label}</h4>
-    <p>{description}</p>
-    <label htmlFor={id}>
-      <input
-        id={id}
-        type="file"
-        defaultValue={defaultValue}
-        multiple={false}
-        accept={accept}
-        onChange={(e: any) => onChange(id, e.target.files[0].path)}
-      />
-    </label>
-    {error ? (
-      <div className="error">
-        <p>Error: {error}</p>
+}: IFileInput) => {
+  // ------------------------------------
+  // Set up state
+  // ------------------------------------
+  const [selectedPath, setSelectedPath] = useState<string>('');
+  const [browserError, setBrowserError] = useState<string[] | null>(null);
+  const [browserLocation, setBrowserLocation] = useState<string>('/');
+  const [browserContents, setBrowserContents] = useState<IPath[]>([]);
+  const [browserOpen, setBrowserOpen] = useState(false);
+  const inputRef = useRef(null);
+
+  const errors = [];
+  if (error) {
+    errors.push(error);
+  }
+  if (browserError) {
+    errors.push(browserError);
+  }
+
+  // ------------------------------------
+  // Handle browser change
+  // ------------------------------------
+  useEffect(() => {
+    const update = async () => {
+      const contents = await getDirContents(browserLocation);
+      setBrowserContents(contents);
+    };
+    update();
+  }, [browserLocation]);
+
+  const handleDoubleClickPath = (path: string, dir: boolean) => {
+    if (dir) {
+      //   setPrevBrowserLocation(browserLocation);
+      setBrowserLocation(path);
+    }
+  };
+
+  // ------------------------------------
+  // Handle input change
+  // ------------------------------------
+  const handleInputChange = (value: any) => {
+    const fmt = mapFormatToEndpoint(format);
+    validatePath(value, fmt);
+  };
+
+  const handleClickPath = (path: string, dir: boolean, ref: any) => {
+    if (path === selectedPath) {
+      return;
+    }
+    if (!dir && mapFormatToEndpoint(format) === 'directory') {
+      return;
+    }
+    if (dir && mapFormatToEndpoint(format) === 'file') {
+      return;
+    }
+    setSelectedPath(path);
+    const current = ref.current;
+    if (current) {
+      setNativeValue(current, path);
+      const event = new Event('input', { bubbles: true });
+      current.dispatchEvent(event);
+    }
+  };
+
+  // ------------------------------------
+  // Handle path validation
+  // ------------------------------------
+  const validatePath = async (path: string, format: string) => {
+    if (path === '') {
+      onChange(id, format, path);
+      return;
+    }
+    const encodedPath = encodeURIComponent(path);
+    const data = await requestAPI<any>(`${format}/${encodedPath}`, {
+      method: 'GET'
+    });
+    if (!data.exists) {
+      setBrowserError(data.error);
+      return;
+    }
+    setBrowserError(null);
+    onChange(id, format, path);
+  };
+
+  return (
+    <div className={`FileInput ${className}`}>
+      <h4>{label}</h4>
+      <p>{description}</p>
+      <div className="file-input-container">
+        <label htmlFor={id}>
+          <input
+            id={id}
+            ref={inputRef}
+            type="text"
+            placeholder={'Enter a value'}
+            defaultValue={defaultValue}
+            pattern={pattern}
+            onChange={e => {
+              handleInputChange(e.target.value);
+            }}
+          />
+        </label>
+        <button
+          className="file-browser-toggle"
+          onClick={() => setBrowserOpen(!browserOpen)}
+        >
+          Browse
+        </button>
       </div>
-    ) : (
-      ''
-    )}
-  </div>
-);
+
+      {browserOpen ? (
+        <div className="file-browser">
+          <ul>
+            {browserLocation !== '/' ? (
+              <li className="file-browser-path file-browser-back">
+                <button
+                  onClick={() =>
+                    setBrowserLocation(getParentDir(browserLocation))
+                  }
+                >
+                  Go Up
+                </button>
+              </li>
+            ) : (
+              ''
+            )}
+            {browserContents.map(Item => (
+              <li className="file-browser-path">
+                <button
+                  onClick={() => handleClickPath(Item.path, Item.dir, inputRef)}
+                  onDoubleClick={() =>
+                    handleDoubleClickPath(Item.path, Item.dir)
+                  }
+                >
+                  <FontAwesomeIcon icon={Item.dir ? faFolder : faFile} />
+                  {Item.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        ''
+      )}
+
+      {errors.length ? (
+        <div className="error">
+          {errors.map(Error => (
+            <p>Error: {Error}</p>
+          ))}
+        </div>
+      ) : (
+        ''
+      )}
+    </div>
+  );
+};
 
 // -----------------------------------------------------------------------------
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledFileInput = styled(FileInput)`
-  .input-container {
-    margin: 25px 0 0 0;
-    padding: 25px;
-    background-color: #1e1e1e;
+  h4 {
+    padding: 0 0 5px 0;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: black;
+  }
+
+  p {
+    padding: 0 0 10px 0;
+    font-size: 13px;
+    color: #333;
+  }
+
+  .file-input-container {
+    max-width: 700px;
+    display: flex;
+    border: 1px solid transparent;
     border-radius: 4px;
   }
 
-  .input-container p {
-    padding: 15px 0;
+  .file-input-container:hover {
+    border: 1px solid #005c75;
+  }
+
+  label {
+    width: 100%;
+    display: flex;
   }
 
   input {
-    cursor: pointer;
-    border: 0;
-    padding: 0;
-    margin: 0;
-    transition: 0.2s ease-in-out all;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
   }
-  input::file-selector-button {
-    margin-right: 15px;
-    cursor: pointer;
-    outline: none;
-    background-color: transparent;
+
+  input,
+  .file-browser-toggle {
+    margin: 0;
     padding: 15px 25px;
-    border: 1px solid black;
-    color: black;
-    text-transform: uppercase;
-    font-size: 11px;
-    border-radius: 4px;
-    line-height: 1em;
+
+    font-size: 12px;
+    font-family: monospace;
     letter-spacing: 0.05em;
+    color: black;
+    border: 0;
+    background-color: #f3f3f3;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    outline: none;
+
     transition: 0.2s ease-in-out all;
   }
 
-  .error {
+  .file-browser-toggle {
+    line-height: 1.2em;
+    border-radius: 0;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-left: 1px solid #ccc;
+    cursor: pointer;
+  }
+
+  .file-browser-toggle:hover {
+    background-color: #005c75;
+    color: white;
+  }
+
+  .file-browser {
+    max-height: 300px;
+    margin: 10px 0 0 0;
+    border-radius: 4px;
+    background-color: #f3f3f3;
+    overflow-y: auto;
+  }
+
+  .file-browser-path button {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 15px 25px;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    font-size: 12px;
+    font-family: monospace;
+    letter-spacing: 0.05em;
+    outline: none;
+    border: none;
+    border-bottom: 1px solid #f4f4f4;
+    cursor: pointer;
+  }
+
+  .file-browser-path:nth-child(even) button {
+    background-color: #f2f2f2;
+  }
+
+  .file-browser-path:last-child button {
+    border-bottom: none;
+  }
+
+  .file-browser-path button:hover {
+    color: #005c75;
+  }
+
+  .file-browser-back {
+    font-style: italic;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .file-browser-path button svg {
+    padding: 0 10px 0 0;
+    color: lightgray;
+    font-size: 1.5em;
+  }
+
+  .file-browser-path button:hover svg {
+    color: #005c75;
+  }
+
+  .error p {
     padding: 15px 0 0 0;
     color: #e34040;
   }

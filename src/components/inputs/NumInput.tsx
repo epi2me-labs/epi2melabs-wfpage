@@ -65,49 +65,54 @@ const NumInput = ({
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledNumInput = styled(NumInput)`
-  .input-container {
-    margin: 25px 0 0 0;
-    padding: 25px;
-    background-color: #1e1e1e;
-    border-radius: 4px;
-  }
-
-  .input-container p {
-    padding: 15px 0;
-  }
-
-  input {
-    cursor: pointer;
-    border: 0;
-    padding: 0;
-    margin: 0;
-    transition: 0.2s ease-in-out all;
-  }
-  input {
-    margin-right: 15px;
-    cursor: pointer;
-    outline: none;
-    background-color: transparent;
-    padding: 15px 25px;
-    border: 1px solid black;
-    color: black;
-    text-transform: uppercase;
-    font-size: 11px;
-    border-radius: 4px;
+  h4 {
+    padding: 0 0 5px 0;
+    font-size: 12px;
     font-weight: bold;
-    line-height: 1em;
+    text-transform: uppercase;
+    color: black;
+  }
+
+  p {
+    padding: 0 0 10px 0;
+    font-size: 13px;
+    color: #333;
+  }
+
+  label {
+    display: flex;
+  }
+
+  input {
+    margin: 0;
+    padding: 15px 25px;
+
+    font-size: 12px;
+    font-family: monospace;
     letter-spacing: 0.05em;
+    line-height: 1em;
+
+    color: black;
+    background-color: #f3f3f3;
+    border: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    outline: none;
+
     transition: 0.2s ease-in-out all;
-
-    -moz-appearance: textfield;
-  }
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
   }
 
-  .error {
+  .error p {
     padding: 15px 0 0 0;
     color: #e34040;
+  }
+
+  input:hover {
+    border: 1px solid #005c75;
+  }
+
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
   }
 `;
 

@@ -31,23 +31,7 @@ const ParameterComponent = ({
 // -----------------------------------------------------------------------------
 const StyledParameterComponent = styled(ParameterComponent)`
   padding: 25px 0;
-  border-top: 1px solid #ccc;
-
-  h4 {
-    padding: 0 0 5px 0;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
-
-  p {
-    padding: 0 0 10px 0;
-  }
-
-  input {
-    font-size: 12px;
-    font-family: monospace;
-  }
+  border-top: 1px solid #e5e5e5;
 `;
 
 export default StyledParameterComponent;
