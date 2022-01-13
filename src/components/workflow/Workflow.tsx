@@ -139,8 +139,10 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
         {/* Workflow header */}
         <div className="workflow-section workflow-header">
           <h1>Workflow: {params.name}</h1>
-          <div className="workflow-details">
+          <div className="workflow-description">
             <div>{workflowData.desc}</div>
+          </div>
+          <div className="workflow-details">
             <div>Version {workflowData.defaults.wfversion}</div>
           </div>
         </div>
@@ -215,11 +217,33 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
     padding-bottom: 15px;
   }
 
-  .workflow-details div {
-    color: #333;
-    font-weight: normal;
+  .workflow-header {
+    padding: 25px 15px;
+    text-align: center;
+  }
+
+  .workflow-description div {
+    letter-spacing: 0em;
     font-size: 14px;
+    text-transform: none;
+    padding-bottom: 15px;
+    max-width: 700px;
+    line-height: 1.4em;
+    text-align: center;
+    margin: 0 auto;
+    color: #a0a0a0;
+  }
+
+  .workflow-details div {
+    /* color: #333;
+    font-weight: normal;
+    font-size: 14px; */
     padding-bottom: 5px;
+    color: #a0a0a0;
+    text-transform: uppercase;
+    font-size: 11px;
+    line-height: 1em;
+    letter-spacing: 0.05em;
   }
 
   .workflow-parameter-sections .workflow-section-contents > ul > li {

@@ -106,6 +106,8 @@ const FileInput = ({
   const [browserOpen, setBrowserOpen] = useState(false);
   const inputRef = useRef(null);
 
+  const mappedFormat = mapFormatToEndpoint(format);
+
   const errors = [];
   if (error) {
     errors.push(error);
@@ -120,7 +122,15 @@ const FileInput = ({
   useEffect(() => {
     const update = async () => {
       const contents = await getDirContents(browserLocation);
-      setBrowserContents(contents);
+      if (contents) {
+        setBrowserContents(
+          contents
+            .filter((Item: IPath) =>
+              mappedFormat !== 'file' && Item.dir ? true : false
+            )
+            .sort((a: IPath, b: IPath) => a.name.localeCompare(b.name))
+        );
+      }
     };
     update();
   }, [browserLocation]);
@@ -144,10 +154,10 @@ const FileInput = ({
     if (path === selectedPath) {
       return;
     }
-    if (!dir && mapFormatToEndpoint(format) === 'directory') {
+    if (!dir && mappedFormat === 'directory') {
       return;
     }
-    if (dir && mapFormatToEndpoint(format) === 'file') {
+    if (dir && mappedFormat === 'file') {
       return;
     }
     setSelectedPath(path);
