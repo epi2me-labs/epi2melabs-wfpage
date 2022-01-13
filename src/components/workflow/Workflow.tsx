@@ -198,7 +198,7 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
   background-color: #f6f6f6;
 
   .workflow-container {
-    padding: 50px 0 100px 0 !important;
+    padding: 0 0 100px 0 !important;
   }
 
   .workflow-section {
@@ -218,7 +218,11 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
   }
 
   .workflow-header {
-    padding: 25px 15px;
+    width: 100%;
+    margin: 0 auto 50px auto;
+    max-width: 100%;
+    box-shadow: none;
+    padding: 75px 0;
     text-align: center;
   }
 
