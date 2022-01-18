@@ -36,7 +36,6 @@ const BooleanInput = ({
   className
 }: IBooleanInput): JSX.Element => {
   const [isChecked, setIsChecked] = useState(defaultValue);
-  console.log(isChecked);
 
   return (
     <div
