@@ -114,10 +114,12 @@ const StyledWorkflowsList = styled(WorkflowsList)`
   }
 
   .workflow-header span {
-    text-transform: uppercase;
-    font-size: 12px;
-    padding-bottom: 5px;
+    letter-spacing: 0.05em;
     color: #a0a0a0;
+    text-transform: uppercase;
+    font-size: 11px;
+    line-height: 1em;
+    padding-bottom: 5px;
   }
   .workflow-header {
     display: flex;
