@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFolder, faFile } from '@fortawesome/free-solid-svg-icons';
+import {
+  faFolder,
+  faFile,
+  faTimes,
+  faLevelUpAlt
+} from '@fortawesome/free-solid-svg-icons';
 import { requestAPI } from '../../handler';
 import styled from 'styled-components';
 
@@ -217,6 +222,12 @@ const FileInput = ({
       {browserOpen ? (
         <div className="file-browser">
           <div className="file-browser-contents">
+            <div className="file-browser-path file-browser-close">
+              <button onClick={() => setBrowserOpen(false)}>
+                <FontAwesomeIcon icon={faTimes} />
+                Close
+              </button>
+            </div>
             <ul>
               {browserLocation !== '/' ? (
                 <li className="file-browser-path file-browser-back">
@@ -225,6 +236,7 @@ const FileInput = ({
                       setBrowserLocation(getParentDir(browserLocation))
                     }
                   >
+                    <FontAwesomeIcon icon={faLevelUpAlt} />
                     Go Up
                   </button>
                 </li>
@@ -232,7 +244,11 @@ const FileInput = ({
                 ''
               )}
               {browserContents.map(Item => (
-                <li className="file-browser-path">
+                <li
+                  className={`file-browser-path ${
+                    selectedPath === Item.path ? 'selected' : ''
+                  }`}
+                >
                   <button
                     onClick={() =>
                       handleClickPath(Item.path, Item.dir, inputRef)
@@ -247,9 +263,6 @@ const FileInput = ({
                 </li>
               ))}
             </ul>
-            <div className="file-browser-path file-browser-close">
-              <button onClick={() => setBrowserOpen(false)}>Close</button>
-            </div>
           </div>
         </div>
       ) : (
@@ -354,7 +367,7 @@ const StyledFileInput = styled(FileInput)`
     padding: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.35);
     /* max-height: 300px; */
     /* margin: 10px 0 0 0; */
     /* border-radius: 4px; */
@@ -367,7 +380,8 @@ const StyledFileInput = styled(FileInput)`
     /* max-height: 500px; */
     border-radius: 4px;
     overflow-y: auto;
-    background-color: #f3f3f3;
+    /* background-color: #f3f3f3; */
+    background-color: rgba(255, 255, 255, 0.6);
   }
 
   .file-browser-contents > ul {
@@ -387,6 +401,7 @@ const StyledFileInput = styled(FileInput)`
     letter-spacing: 0.05em;
     outline: none;
     border: none;
+    border-radius: 0;
     border-bottom: 1px solid #f4f4f4;
     cursor: pointer;
   }
@@ -403,6 +418,15 @@ const StyledFileInput = styled(FileInput)`
     color: #005c75;
   }
 
+  .file-browser-path.selected button {
+    background-color: #005c75;
+    color: white;
+  }
+
+  .file-browser-path.selected button:hover {
+    color: white;
+  }
+
   .file-browser-back {
     font-style: italic;
     background-color: rgba(0, 0, 0, 0.1);
@@ -413,9 +437,11 @@ const StyledFileInput = styled(FileInput)`
   }
 
   .file-browser-path.file-browser-close button {
+    display: flex;
+    justify-content: end;
     border-radius: 0;
-    background-color: #005c75;
-    color: white;
+    border-bottom: 2px solid #ccc;
+    color: #333;
   }
 
   .file-browser-path.file-browser-close:hover button {
@@ -431,6 +457,10 @@ const StyledFileInput = styled(FileInput)`
 
   .file-browser-path button:hover svg {
     color: #005c75;
+  }
+
+  .file-browser-path.selected button:hover svg {
+    color: lightgray;
   }
 
   .error p {
