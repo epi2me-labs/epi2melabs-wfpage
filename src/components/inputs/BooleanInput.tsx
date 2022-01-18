@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
 
 // -----------------------------------------------------------------------------
@@ -50,11 +52,13 @@ const BooleanInput = ({
           type="checkbox"
           defaultChecked={defaultValue}
           onChange={(e: any) => {
-            setIsChecked(e.target.value);
+            setIsChecked(e.target.checked ? true : false);
             onChange(id, format, e.target.checked ? true : false);
           }}
         />
-        <span>&#10003;</span>
+        <span>
+          <FontAwesomeIcon icon={isChecked ? faCheck : faTimes} />
+        </span>
       </label>
 
       {error ? (
@@ -88,14 +92,18 @@ const StyledBooleanInput = styled(BooleanInput)`
 
   label {
     position: relative;
-    display: flex;
+    display: inline-block;
   }
 
   label span {
+    box-sizing: border-box;
+    min-width: 75px;
     margin: 0;
     padding: 15px 25px;
+    display: block;
 
-    font-size: 20px;
+    text-align: center;
+    font-size: 16px;
     font-family: monospace;
     letter-spacing: 0.05em;
     line-height: 1em;

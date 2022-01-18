@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFolder, faFile } from '@fortawesome/free-solid-svg-icons';
+import {
+  faFolder,
+  faFile,
+  faTimes,
+  faLevelUpAlt
+} from '@fortawesome/free-solid-svg-icons';
 import { requestAPI } from '../../handler';
 import styled from 'styled-components';
 
@@ -106,6 +111,8 @@ const FileInput = ({
   const [browserOpen, setBrowserOpen] = useState(false);
   const inputRef = useRef(null);
 
+  const mappedFormat = mapFormatToEndpoint(format);
+
   const errors = [];
   if (error) {
     errors.push(error);
@@ -120,14 +127,21 @@ const FileInput = ({
   useEffect(() => {
     const update = async () => {
       const contents = await getDirContents(browserLocation);
-      setBrowserContents(contents);
+      if (contents) {
+        setBrowserContents(
+          contents
+            .filter((Item: IPath) =>
+              mappedFormat === 'directory' && !Item.dir ? false : true
+            )
+            .sort((a: IPath, b: IPath) => a.name.localeCompare(b.name))
+        );
+      }
     };
     update();
   }, [browserLocation]);
 
   const handleDoubleClickPath = (path: string, dir: boolean) => {
     if (dir) {
-      //   setPrevBrowserLocation(browserLocation);
       setBrowserLocation(path);
     }
   };
@@ -144,10 +158,10 @@ const FileInput = ({
     if (path === selectedPath) {
       return;
     }
-    if (!dir && mapFormatToEndpoint(format) === 'directory') {
+    if (!dir && mappedFormat === 'directory') {
       return;
     }
-    if (dir && mapFormatToEndpoint(format) === 'file') {
+    if (dir && mappedFormat === 'file') {
       return;
     }
     setSelectedPath(path);
@@ -180,7 +194,7 @@ const FileInput = ({
   };
 
   return (
-    <div className={`FileInput ${className}`}>
+    <div id={id} className={`FileInput ${className}`}>
       <h4>{label}</h4>
       <p>{description}</p>
       <div className="file-input-container">
@@ -207,34 +221,49 @@ const FileInput = ({
 
       {browserOpen ? (
         <div className="file-browser">
-          <ul>
-            {browserLocation !== '/' ? (
-              <li className="file-browser-path file-browser-back">
-                <button
-                  onClick={() =>
-                    setBrowserLocation(getParentDir(browserLocation))
-                  }
+          <div className="file-browser-contents">
+            <div className="file-browser-path file-browser-close">
+              <button onClick={() => setBrowserOpen(false)}>
+                <FontAwesomeIcon icon={faTimes} />
+                Close
+              </button>
+            </div>
+            <ul>
+              {browserLocation !== '/' ? (
+                <li className="file-browser-path file-browser-back">
+                  <button
+                    onClick={() =>
+                      setBrowserLocation(getParentDir(browserLocation))
+                    }
+                  >
+                    <FontAwesomeIcon icon={faLevelUpAlt} />
+                    Go Up
+                  </button>
+                </li>
+              ) : (
+                ''
+              )}
+              {browserContents.map(Item => (
+                <li
+                  className={`file-browser-path ${
+                    selectedPath === Item.path ? 'selected' : ''
+                  }`}
                 >
-                  Go Up
-                </button>
-              </li>
-            ) : (
-              ''
-            )}
-            {browserContents.map(Item => (
-              <li className="file-browser-path">
-                <button
-                  onClick={() => handleClickPath(Item.path, Item.dir, inputRef)}
-                  onDoubleClick={() =>
-                    handleDoubleClickPath(Item.path, Item.dir)
-                  }
-                >
-                  <FontAwesomeIcon icon={Item.dir ? faFolder : faFile} />
-                  {Item.name}
-                </button>
-              </li>
-            ))}
-          </ul>
+                  <button
+                    onClick={() =>
+                      handleClickPath(Item.path, Item.dir, inputRef)
+                    }
+                    onDoubleClick={() =>
+                      handleDoubleClickPath(Item.path, Item.dir)
+                    }
+                  >
+                    <FontAwesomeIcon icon={Item.dir ? faFolder : faFile} />
+                    {Item.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       ) : (
         ''
@@ -326,10 +355,37 @@ const StyledFileInput = styled(FileInput)`
   }
 
   .file-browser {
-    max-height: 300px;
-    margin: 10px 0 0 0;
+    position: fixed;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    top: 0px;
+    left: 0px;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    /* max-height: 300px; */
+    /* margin: 10px 0 0 0; */
+    /* border-radius: 4px; */
+    /* background-color: #f3f3f3; */
+    /* overflow-y: auto; */
+  }
+
+  .file-browser-contents {
+    width: 900px;
+    /* max-height: 500px; */
     border-radius: 4px;
-    background-color: #f3f3f3;
+    overflow-y: auto;
+    /* background-color: #f3f3f3; */
+    background-color: rgba(255, 255, 255, 0.6);
+  }
+
+  .file-browser-contents > ul {
+    max-height: 500px;
     overflow-y: auto;
   }
 
@@ -345,6 +401,7 @@ const StyledFileInput = styled(FileInput)`
     letter-spacing: 0.05em;
     outline: none;
     border: none;
+    border-radius: 0;
     border-bottom: 1px solid #f4f4f4;
     cursor: pointer;
   }
@@ -361,9 +418,35 @@ const StyledFileInput = styled(FileInput)`
     color: #005c75;
   }
 
+  .file-browser-path.selected button {
+    background-color: #005c75;
+    color: white;
+  }
+
+  .file-browser-path.selected button:hover {
+    color: white;
+  }
+
   .file-browser-back {
     font-style: italic;
     background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .file-browser-close {
+    background-color: transparent;
+  }
+
+  .file-browser-path.file-browser-close button {
+    display: flex;
+    justify-content: end;
+    border-radius: 0;
+    border-bottom: 2px solid #ccc;
+    color: #333;
+  }
+
+  .file-browser-path.file-browser-close:hover button {
+    background-color: #f2f2f2;
+    color: #333;
   }
 
   .file-browser-path button svg {
@@ -374,6 +457,10 @@ const StyledFileInput = styled(FileInput)`
 
   .file-browser-path button:hover svg {
     color: #005c75;
+  }
+
+  .file-browser-path.selected button:hover svg {
+    color: lightgray;
   }
 
   .error p {

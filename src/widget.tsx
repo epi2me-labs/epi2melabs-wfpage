@@ -26,7 +26,7 @@ export class Launcher extends ReactWidget {
     return (
       <Router>
         <LauncherContainer>
-          <main>
+          <main style={{ position: 'relative' }}>
             <StyledHeader />
             <div>
               <Routes>

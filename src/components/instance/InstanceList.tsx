@@ -185,9 +185,11 @@ const StyledInstanceList = styled(InstanceList)`
     padding: 5px 0;
   }
   .instance-header span {
-    text-transform: uppercase;
-    font-size: 12px;
     color: #a0a0a0;
+    text-transform: uppercase;
+    font-size: 11px;
+    line-height: 1em;
+    letter-spacing: 0.05em;
   }
   .instance-header {
     display: flex;
