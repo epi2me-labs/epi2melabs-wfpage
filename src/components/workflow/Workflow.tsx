@@ -41,6 +41,20 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
     return await requestAPI<any>(`workflows/${params.name}`);
   };
 
+  const getInstanceParams = async (instance_id: string | undefined) => {
+    if (instance_id) {
+      const { path } = await requestAPI<any>(`instances/${instance_id}`);
+      const encodedPath = encodeURIComponent(`${path}/params.json`);
+      const { exists, contents } = await requestAPI<any>(
+        `file/${encodedPath}?contents=true`
+      );
+      if (!exists) {
+        return null;
+      }
+      return JSON.parse(contents.join(''));
+    }
+  };
+
   const filterHiddenParameters = (parameters: { [key: string]: Parameter }) =>
     Object.entries(parameters)
       .filter(([key, Property]) => !Property.hidden && key !== 'out_dir')
@@ -52,8 +66,8 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
         {}
       );
 
-  const filterSchemaSections = (definitions: ParameterSection[]) => {
-    return Object.values(definitions)
+  const getSchemaSections = (definitions: ParameterSection[]) => {
+    return definitions
       .map(Section => ({
         ...Section,
         properties: filterHiddenParameters(Section.properties)
@@ -61,13 +75,46 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
       .filter(Def => Object.keys(Def.properties).length !== 0);
   };
 
+  const overrideDefaults = (
+    sections: ParameterSection[],
+    defaults: GenericObject
+  ) => {
+    return sections.map(Section => ({
+      ...Section,
+      properties: Object.entries(Section.properties).reduce(
+        (obj, prop) => ({
+          [prop[0]]: {
+            ...prop[1],
+            default: defaults[prop[0]] || prop[1].default
+          },
+          ...obj
+        }),
+        {}
+      )
+    }));
+  };
+
   useEffect(() => {
     const init = async () => {
+      // Get the initial workflow data
       const workflowData = await getWorkflowData();
       setWorkflowData(workflowData);
-      setWorkflowParams(workflowData.defaults);
-
-      const sections = filterSchemaSections(workflowData.schema.definitions);
+      // Acquire the workflow default params
+      const defaults = await getInstanceParams(params.instance_id);
+      if (defaults) {
+        setWorkflowParams(defaults);
+      } else {
+        setWorkflowParams(workflowData.defaults);
+      }
+      // Get and set the workflow schema sections
+      const sections = getSchemaSections(
+        Object.values(workflowData.schema.definitions)
+      );
+      if (defaults) {
+        const overriden = overrideDefaults(sections, defaults);
+        setWorkflowActiveSections(overriden);
+        return;
+      }
       setWorkflowActiveSections(sections);
     };
     init();

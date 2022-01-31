@@ -1,4 +1,5 @@
 import React from 'react';
+import { JupyterFrontEnd } from '@jupyterlab/application';
 import { ReactWidget } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import StyledInstance from './components/instance/Instance';
@@ -15,8 +16,9 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 const LauncherContainer = styled.div``;
 
 export class Launcher extends ReactWidget {
-  constructor(docTrack: IDocumentManager) {
+  constructor(app: JupyterFrontEnd, docTrack: IDocumentManager) {
     super();
+    this.app = app;
     this.docTrack = docTrack;
     this.addClass('jp-ReactWidget');
     this.addClass('epi2melabs-wfpage-widget');
@@ -30,11 +32,16 @@ export class Launcher extends ReactWidget {
             <StyledHeader />
             <div>
               <Routes>
-                <Route path="/workflows/:name" element={<StyledWorkflow />} />
+                <Route path="/workflows/:name">
+                  <Route path=":instance_id" element={<StyledWorkflow />} />
+                  <Route path="" element={<StyledWorkflow />} />
+                </Route>
                 <Route path="/workflows" element={<StyledWorkflowsPanel />} />
                 <Route
                   path="/instances/:id"
-                  element={<StyledInstance docTrack={this.docTrack} />}
+                  element={
+                    <StyledInstance docTrack={this.docTrack} app={this.app} />
+                  }
                 />
                 <Route path="/instances" element={<StyledInstancesPanel />} />
                 <Route path="/" element={<StyledIndexPanel />} />
@@ -47,5 +54,6 @@ export class Launcher extends ReactWidget {
     );
   }
 
+  public app: JupyterFrontEnd;
   public docTrack: IDocumentManager;
 }

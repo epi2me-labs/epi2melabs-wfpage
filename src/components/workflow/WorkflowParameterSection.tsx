@@ -3,7 +3,7 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
-import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown, faCaretUp, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { IconName, IconPrefix } from '@fortawesome/fontawesome-svg-core';
 import StyledParameterComponent from './WorkflowParameter';
 import { ParameterSection } from './schema';
@@ -59,8 +59,18 @@ const ParameterSectionComponent = ({
             )}
             {title}
           </h3>
-          <div>
-            <FontAwesomeIcon icon={faCaretDown} />
+          <div className='parameter-section-toggle-controls'>
+              {isValid ? (
+                <div className='parameter-section-toggle-errors valid'>
+                  <FontAwesomeIcon icon={faCheckCircle} />
+                </div>
+              ) : (
+                <div className='parameter-section-toggle-errors invalid'>
+                  <p>{Object.keys(errors).length}</p>
+                  <FontAwesomeIcon icon={faTimesCircle} />
+                </div>
+              )}
+            <FontAwesomeIcon icon={isOpen ? faCaretUp : faCaretDown} />
           </div>
         </button>
         <ul className={`parameter-section-items ${isOpen ? 'open' : 'closed'}`}>
@@ -109,6 +119,35 @@ const StyledParameterSectionComponent = styled(ParameterSectionComponent)`
 
   .parameter-section-container.valid .parameter-section-toggle h3 {
     color: black;
+  }
+
+  .parameter-section-toggle-controls {
+    display: flex;
+  }
+
+  .parameter-section-toggle-errors {
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+  }
+
+  .parameter-section-toggle-errors svg {
+    width: 15px;
+    height: 15px;
+    margin-left: 5px;
+  }
+
+  .parameter-section-toggle-errors.valid svg {
+    color: #1d9655;
+  }
+
+  .parameter-section-toggle-errors.invalid svg {
+    color: #e34040;
+  }
+
+  .parameter-section-toggle-errors.invalid p {
+    font-weight: bold;
+    color: #e34040;
   }
 
   .parameter-section-items {

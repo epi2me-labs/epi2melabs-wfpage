@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IDocumentManager } from '@jupyterlab/docmanager';
-import { GenericStringObject, GenericObject } from '../../types';
+import { GenericObject } from '../../types';
 import { useParams, useNavigate } from 'react-router-dom';
 import StyledStatusIndicator from './StatusIndicator';
+import StyledLoadingSpinner from '../LoadingSpinner';
 import { requestAPI } from '../../handler';
 import styled from 'styled-components';
 import { Instance } from './types';
@@ -13,26 +15,36 @@ import { Instance } from './types';
 interface IInstanceComponent {
   className?: string;
   docTrack: IDocumentManager;
+  app: JupyterFrontEnd;
 }
 
 const InstanceComponent = ({
   className,
-  docTrack
+  docTrack,
+  app
 }: IInstanceComponent): JSX.Element => {
   // ------------------------------------
   // Set up state
   // ------------------------------------
   const navigate = useNavigate();
   const routerParams = useParams();
-  const [instanceData, setInstanceData] = useState<Instance | undefined>();
   const [instanceStatus, setInstanceStatus] = useState<string>('');
-  const [instanceParams, setInstanceParams] = useState<GenericStringObject>({});
+  const [instanceData, setInstanceData] = useState<Instance | null>(null);
   const [instanceOutputs, setInstanceOutputs] = useState<GenericObject[]>([]);
-  const [instanceLogs, setInstanceLogs] = useState<string[]>([]);
+  const [instanceParams, setInstanceParams] = useState<string[] | null>(null);
+  const [instanceLogs, setInstanceLogs] = useState<string[] | null>(null);
+  const [selectedLog, setSelectedLog] = useState('nextflow.stdout');
 
   // ------------------------------------
   // Handle instance initialisation
   // ------------------------------------
+  const getRelativeInstanceDir = async (instanceData: Instance) => {
+    const { curr_dir, base_dir } = await requestAPI<any>('cwd');
+    const rel_base_dir = base_dir.replace(curr_dir, '').replace(/^\//, '');
+    const basename = instanceData.path.split('/').reverse()[0];
+    return `${rel_base_dir}/instances/${basename}`;
+  };
+
   const getInstanceData = async () => {
     const data = await requestAPI<any>(`instances/${routerParams.id}`);
     setInstanceData(data);
@@ -40,18 +52,11 @@ const InstanceComponent = ({
     return data;
   };
 
-  const getInstanceParams = async () => {
-    const { params } = await requestAPI<any>(`params/${routerParams.id}`);
-    if (params !== null) {
-      setInstanceParams(params);
-    }
-  };
-
   useEffect(() => {
     const init = async () => {
-      await getInstanceData();
-      getInstanceParams();
-      getInstanceLogs();
+      const data = await getInstanceData();
+      getInstanceParams(data);
+      getInstanceLogs(data, selectedLog);
     };
     init();
     const statusMonitor = setInterval(() => getInstanceData(), 5000);
@@ -61,55 +66,114 @@ const InstanceComponent = ({
   }, []);
 
   // ------------------------------------
-  // Handle instance logs / outputs
+  // Get instance params / logs / outputs
   // ------------------------------------
-  const getInstanceLogs = async () => {
-    const { logs } = await requestAPI<any>(`logs/${routerParams.id}`);
-    setInstanceLogs(logs);
-  };
-
-  const getInstanceOutputs = async (instanceData: any) => {
-    if (!instanceData) {
-      return;
-    }
-    const path = `${instanceData.path}/output`;
-    try {
-      const files = await (
-        await docTrack.services.contents.get(path)
-      ).content.filter((Item: any) => Item.type !== 'directory');
-      setInstanceOutputs(files);
-    } catch (error) {
-      console.log('Instance outputs not available yet');
+  const getInstanceParams = async (instanceData: Instance | null) => {
+    if (instanceData) {
+      const encodedPath = encodeURIComponent(
+        `${instanceData.path}/params.json`
+      );
+      const { contents } = await requestAPI<any>(
+        `file/${encodedPath}?contents=true`
+      );
+      if (contents !== null) {
+        setInstanceParams(contents);
+      }
     }
   };
 
+  const getInstanceLogs = async (
+    instanceData: Instance | null,
+    selectedLog: string
+  ) => {
+    if (instanceData) {
+      const encodedPath = encodeURIComponent(
+        `${instanceData.path}/${selectedLog}`
+      );
+      const { contents } = await requestAPI<any>(
+        `file/${encodedPath}?contents=true`
+      );
+      if (contents !== null) {
+        setInstanceLogs(contents);
+      }
+    }
+  };
+
+  const getInstanceOutputs = async (instanceData: Instance | null) => {
+    if (instanceData) {
+      const relative = await getRelativeInstanceDir(instanceData);
+      const path = `${relative}/output`;
+      try {
+        const files = await (
+          await docTrack.services.contents.get(path)
+        ).content.filter((Item: any) => Item.type !== 'directory');
+        setInstanceOutputs(files);
+      } catch (error) {
+        console.log('Instance outputs not available yet');
+      }
+    }
+  };
+
+  // ------------------------------------
+  // Handle opening files
+  // ------------------------------------
   const handleOpenOutput = (path: string) => {
     docTrack.open(path);
   };
 
+  const handleOpenFolder = async (instanceData: Instance) => {
+    const path = await getRelativeInstanceDir(instanceData);
+    app.commands.execute('filebrowser:go-to-path', { path });
+  };
+
+  // ------------------------------------
+  // Handle retry workflow
+  // ------------------------------------
+  const handleRerunWorkflow = () => {
+    if (instanceData) {
+      navigate(`/workflows/${instanceData.workflow}/${instanceData.id}`);
+    }
+  };
+
+  // ------------------------------------
+  // Handle retry workflow
+  // ------------------------------------
+  const handleChangingLog = (path: string) => {
+    if (path !== selectedLog) {
+      setInstanceLogs(null);
+      setSelectedLog(path);
+    }
+  };
+
+  // ------------------------------------
+  // Monitor instance status
+  // ------------------------------------
   useEffect(() => {
+    getInstanceOutputs(instanceData);
+    getInstanceLogs(instanceData, selectedLog);
     if (
       ['COMPLETED_SUCCESSFULLY', 'TERMINATED', 'ENCOUNTERED_ERROR'].includes(
         instanceStatus
       )
     ) {
-      getInstanceOutputs(instanceData);
-      getInstanceLogs();
       return;
     } else {
       const filesMonitor = setInterval(
         () => getInstanceOutputs(instanceData),
         10000
       );
-      const logsMonitor = setInterval(() => getInstanceLogs(), 7500);
+      const logsMonitor = setInterval(
+        () => getInstanceLogs(instanceData, selectedLog),
+        7500
+      );
       return () => {
+        getInstanceLogs(instanceData, selectedLog);
         getInstanceOutputs(instanceData);
-        getInstanceLogs();
         clearInterval(filesMonitor);
         clearInterval(logsMonitor);
       };
     }
-  }, [instanceStatus]);
+  }, [instanceStatus, selectedLog]);
 
   // ------------------------------------
   // Handle instance deletion
@@ -132,7 +196,17 @@ const InstanceComponent = ({
   const isRunning = ['LAUNCHED'].includes(instanceStatus);
 
   if (!instanceData) {
-    return <div className={`instance ${className}`}>Loading...</div>;
+    return (
+      <div className={`instance ${className}`}>
+        <div className="loading-screen">
+          <p>
+            Instance data is loading... (If this screen persists, check
+            connection to jupyterlab server)
+          </p>
+          <StyledLoadingSpinner />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -165,23 +239,46 @@ const InstanceComponent = ({
 
         {/* Instance params */}
         <div className="instance-section instance-params">
-          <h2>Instance params</h2>
+          <div className="instance-section-header">
+            <h2>Instance params</h2>
+            <div className="instance-section-header-controls">
+              <button onClick={() => handleRerunWorkflow()}>
+                Configure and rerun
+              </button>
+            </div>
+          </div>
           <div className="instance-section-contents">
-            <ul>
-              {Object.entries(instanceParams).map(([key, value]) => (
-                <li>
-                  {key}: {value.toString()}
-                </li>
-              ))}
-            </ul>
+            {instanceParams && instanceParams.length ? (
+              <ul>
+                {instanceParams.map(Item => (
+                  <li>
+                    <span>{Item}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div>
+                <StyledLoadingSpinner />
+              </div>
+            )}
           </div>
         </div>
 
         {/* Instance logs */}
         <div className="instance-section instance-logs">
-          <h2>Instance logs</h2>
+          <div className="instance-section-header">
+            <h2>Instance logs</h2>
+            <div className="instance-section-header-controls">
+              <button onClick={() => handleChangingLog('nextflow.stdout')}>
+                Nextflow
+              </button>
+              <button onClick={() => handleChangingLog('invoke.stdout')}>
+                Invoke
+              </button>
+            </div>
+          </div>
           <div className="instance-section-contents">
-            {instanceLogs ? (
+            {instanceLogs && instanceLogs.length ? (
               <ul>
                 {instanceLogs.map(Item => (
                   <li>
@@ -190,14 +287,27 @@ const InstanceComponent = ({
                 ))}
               </ul>
             ) : (
-              <div>Logs are loading...</div>
+              <div>
+                <StyledLoadingSpinner />
+              </div>
             )}
           </div>
         </div>
 
         {/* Instance outputs */}
         <div className="instance-section instance-outputs">
-          <h2>Output files</h2>
+          <div className="instance-section-header">
+            <h2>Output files</h2>
+            <div className="instance-section-header-controls">
+              <button
+                onClick={() =>
+                  instanceData ? handleOpenFolder(instanceData) : ''
+                }
+              >
+                Open folder
+              </button>
+            </div>
+          </div>
           <div className="instance-section-contents">
             {instanceOutputs.length ? (
               <ul>
@@ -217,7 +327,9 @@ const InstanceComponent = ({
 
         {/* Instance delete */}
         <div className="instance-section instance-delete">
-          <h2>Danger zone</h2>
+          <div className="instance-section-header">
+            <h2>Danger zone</h2>
+          </div>
           <div className="instance-section-contents">
             <div className={`${!isRunning ? 'active' : 'inactive'}`}>
               <button
@@ -239,6 +351,20 @@ const InstanceComponent = ({
 const StyledInstanceComponent = styled(InstanceComponent)`
   background-color: #f6f6f6;
 
+  .loading-screen {
+    display: flex;
+    justify-content: center;
+    min-height: calc(100vh - 100px);
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .loading-screen p {
+    text-align: center;
+    max-width: 600px;
+    padding-bottom: 15px;
+  }
+
   .instance-container {
     padding: 50px 0 100px 0 !important;
   }
@@ -255,8 +381,32 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     background-color: #ffffff;
   }
 
-  .instance-section > h2 {
+  .instance-section-header {
     padding-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .instance-section-header-controls button {
+    cursor: pointer;
+    padding: 10px 15px;
+    margin-left: 10px;
+    border: none;
+    color: rgba(0, 0, 0, 0.3);
+    text-transform: uppercase;
+    font-size: 11px;
+    border-radius: 4px;
+    font-weight: bold;
+    line-height: 1em;
+    letter-spacing: 0.05em;
+    transition: 0.2s ease-in-out all;
+    outline: none;
+    background-color: rgb(239, 239, 239);
+  }
+
+  .instance-section-header-controls button:hover {
+    color: #005c75;
   }
 
   .instance-section-contents {
@@ -268,10 +418,6 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-  }
-
-  .instance-header-top h2 {
-    padding-bottom: 15px;
   }
 
   .instance-header-top button {
@@ -321,15 +467,8 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     padding-left: 15px;
   }
 
-  .instance-params .instance-section-contents {
-    background-color: #f6f6f6;
-  }
-
-  .instance-params li {
-    font-size: 12px;
-    font-family: monospace;
-  }
-
+  .instance-outputs .instance-section-contents,
+  .instance-params .instance-section-contents,
   .instance-logs .instance-section-contents {
     background-color: #f6f6f6;
     font-size: 12px;
@@ -342,6 +481,8 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     border-radius: 4px;
   }
 
+  .instance-outputs .instance-section-contents button,
+  .instance-params .instance-section-contents span,
   .instance-logs .instance-section-contents span {
     font-size: 12px;
     font-family: monospace;
@@ -353,20 +494,26 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     background-color: #f6f6f6;
   }
 
-  .instance-outputs button {
+  .instance-outputs .instance-section-contents button {
     width: 100%;
     text-align: left;
-    padding: 5px;
+    padding: 5px 0 10px 0;
     font-size: 12px;
     font-family: monospace;
     border: none;
     outline: none;
     background: transparent;
-    border: 1px solid #f6f6f6;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
   }
 
-  .instance-outputs button:hover {
-    border: 1px solid #005c75;
+  .instance-outputs .instance-section-contents > ul > li:last-child button {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .instance-outputs .instance-section-contents button:hover {
+    color: #005c75;
   }
 
   .instance-delete .instance-section-contents {

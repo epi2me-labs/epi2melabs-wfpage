@@ -35,7 +35,7 @@ interface IPath {
   name: string;
   path: string;
   updated: string;
-  dir: boolean;
+  isdir: boolean;
 }
 
 // -----------------------------------------------------------------------------
@@ -131,7 +131,7 @@ const FileInput = ({
         setBrowserContents(
           contents
             .filter((Item: IPath) =>
-              mappedFormat === 'directory' && !Item.dir ? false : true
+              mappedFormat === 'directory' && !Item.isdir ? false : true
             )
             .sort((a: IPath, b: IPath) => a.name.localeCompare(b.name))
         );
@@ -251,13 +251,13 @@ const FileInput = ({
                 >
                   <button
                     onClick={() =>
-                      handleClickPath(Item.path, Item.dir, inputRef)
+                      handleClickPath(Item.path, Item.isdir, inputRef)
                     }
                     onDoubleClick={() =>
-                      handleDoubleClickPath(Item.path, Item.dir)
+                      handleDoubleClickPath(Item.path, Item.isdir)
                     }
                   >
-                    <FontAwesomeIcon icon={Item.dir ? faFolder : faFile} />
+                    <FontAwesomeIcon icon={Item.isdir ? faFolder : faFile} />
                     {Item.name}
                   </button>
                 </li>

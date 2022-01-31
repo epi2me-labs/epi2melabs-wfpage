@@ -29,49 +29,15 @@ class Workflows(LauncherAPIHandler):
         self.finish(json.dumps(workflow))
 
 
-class Logs(LauncherAPIHandler):
+class Cwd(LauncherAPIHandler):
 
     @tornado.web.authenticated
-    def get(self, instance_id: str) -> None:
-        """Get logs(s)"""
-        if instance := self.launcher.get_instance(instance_id):
-            log_file = os.path.join(
-                self.launcher.instance_dir,
-                instance['name'], 'nextflow.stdout')
-
-            if not os.path.exists(log_file):
-                self.finish(json.dumps({}))
-                return
-
-            lines = []
-            with open(log_file) as lf:
-                lines = lf.readlines()
-                lines = [line.rstrip() for line in lines]
-                self.finish(json.dumps({'logs': lines}))
-            return
-
-        self.finish(json.dumps({}))
-
-
-class Params(LauncherAPIHandler):
-
-    @tornado.web.authenticated
-    def get(self, instance_id: str) -> None:
-        """Get params(s)"""
-        if instance := self.launcher.get_instance(instance_id):
-            params_file = os.path.join(
-                self.launcher.instance_dir,
-                instance['name'], self.launcher.PARAMS)
-
-            if not os.path.exists(params_file):
-                self.finish(json.dumps({}))
-                return
-
-            with open(params_file, 'r') as pf:
-                params = json.load(pf)
-                self.finish(json.dumps({'params': params}))
-            return
-        self.finish(json.dumps({}))
+    def get(self) -> None:
+        """Get current working dir"""
+        self.finish(json.dumps({
+            'curr_dir': os.getcwd(),
+            'base_dir': self.launcher.base_dir}
+        ))
 
 
 class Path(LauncherAPIHandler):
@@ -79,10 +45,9 @@ class Path(LauncherAPIHandler):
     @tornado.web.authenticated
     def get(self, path) -> None:
         """Get path"""
-        exists, error = self.launcher.validate_path(path)
-        self.finish(json.dumps({
-            'exists': exists,
-            'error': error}))
+        self.finish(json.dumps(
+            self.launcher.get_path(path)
+        ))
 
 
 class File(LauncherAPIHandler):
@@ -90,10 +55,11 @@ class File(LauncherAPIHandler):
     @tornado.web.authenticated
     def get(self, path) -> None:
         """Get file"""
-        exists, error = self.launcher.validate_file_path(path)
-        self.finish(json.dumps({
-            'exists': exists,
-            'error': error}))
+        self.finish(json.dumps(
+            self.launcher.get_file(
+                path,
+                contents=self.get_argument("contents", None, True)
+            )))
 
 
 class Directory(LauncherAPIHandler):
@@ -101,12 +67,11 @@ class Directory(LauncherAPIHandler):
     @tornado.web.authenticated
     def get(self, path) -> None:
         """Get directory"""
-        exists, error = self.launcher.validate_directory_path(path)
-        resp = {'exists': exists, 'error': error}
-        if self.get_argument("contents", None, True) and exists:
-            contents = self.launcher.list_dir(path)
-            resp['contents'] = contents
-        self.finish(json.dumps(resp))
+        self.finish(json.dumps(
+            self.launcher.get_directory(
+                path,
+                contents=self.get_argument("contents", None, True)
+            )))
 
 
 class Instance(LauncherAPIHandler):
@@ -115,23 +80,18 @@ class Instance(LauncherAPIHandler):
     def get(self, instance_id: Union[str, None] = None) -> None:
         """Get workflow instance(s)"""
         if instance_id:
-            instance = self.launcher.get_instance(instance_id)
-
-            # Todo: stop hacking
-            instance['path'] = os.path.join(
-                self.launcher.orig_dir, 'instances',
-                instance['name'])
-
-            self.finish(json.dumps(instance))
+            self.finish(json.dumps(
+                self.launcher.get_instance(instance_id)
+            ))
             return
-        
+
         payload = self.get_json_body() or {}
         all_instances = self.launcher.instances
 
         if instance_ids := payload.get('instances'):
-            self.finish(json.dumps({ 
-                    k: v for (k,v) in x.items() 
-                    if k in instance_ids 
+            self.finish(json.dumps({
+                    k: v for (k, v) in x.items()
+                    if k in instance_ids
                 } for x in all_instances
             ))
             return
@@ -146,7 +106,7 @@ class Instance(LauncherAPIHandler):
         if not payload:
             self.finish(json.dumps({}))
             return
-        
+
         name = payload['workflow']
         params = payload['params']
 
@@ -154,7 +114,7 @@ class Instance(LauncherAPIHandler):
             name, params)
 
         self.finish(json.dumps({
-            'created': created, 
+            'created': created,
             'instance': instance
         }))
 
@@ -197,13 +157,9 @@ def setup_handlers(web_app):
     instances_pattern = url_path_join(
         base_url, epi2melabs_wfpage, r"instances/?")
 
-    # Instance extras
-    logs_pattern = url_path_join(
-        base_url, epi2melabs_wfpage, r"logs/([-A-Za-z0-9]+)")
-    params_pattern = url_path_join(
-        base_url, epi2melabs_wfpage, r"params/([-A-Za-z0-9]+)")
-
     # Filesystem
+    cwd_pattern = url_path_join(
+        base_url, epi2melabs_wfpage, r"cwd/?")
     path_pattern = url_path_join(
         base_url, epi2melabs_wfpage, r"path/([-A-Za-z0-9_%.]+)")
     file_pattern = url_path_join(
@@ -212,15 +168,14 @@ def setup_handlers(web_app):
         base_url, epi2melabs_wfpage, r"directory/([-A-Za-z0-9_%.]+)")
 
     handlers = [
+        (cwd_pattern, Cwd, launcher),
         (path_pattern, Path, launcher),
         (file_pattern, File, launcher),
         (directory_pattern, Directory, launcher),
         (workflow_pattern, Workflows, launcher),
         (workflows_pattern, Workflows, launcher),
         (instance_pattern, Instance, launcher),
-        (instances_pattern, Instance, launcher),
-        (logs_pattern, Logs, launcher),
-        (params_pattern, Params, launcher),
+        (instances_pattern, Instance, launcher)
     ]
 
     web_app.add_handlers(host_pattern, handlers)
