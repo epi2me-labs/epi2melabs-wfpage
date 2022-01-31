@@ -43,7 +43,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
           label: 'Workflows (Beta)',
           icon: labsLogoIcon,
           execute: () => {
-            const content = new Launcher(docTrack);
+            const content = new Launcher(app, docTrack);
             const widget = new MainAreaWidget<Launcher>({ content });
             widget.title.label = 'EPI2ME Labs';
             shell.add(widget, 'main');
