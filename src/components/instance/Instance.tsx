@@ -136,7 +136,7 @@ const InstanceComponent = ({
   };
 
   // ------------------------------------
-  // Handle retry workflow
+  // Handle switching logs
   // ------------------------------------
   const handleChangingLog = (path: string) => {
     if (path !== selectedLog) {
@@ -193,15 +193,31 @@ const InstanceComponent = ({
     }
   };
 
-  const isRunning = ['LAUNCHED'].includes(instanceStatus);
+  // ------------------------------------
+  // Handle find report
+  // ------------------------------------
+  const getReport = (instanceData: Instance): null | GenericObject => {
+    let report = null;
+    if (instanceOutputs.length) {
+      instanceOutputs.forEach(Output => {
+        if (Output.name === `${instanceData.workflow}-report.html`) {
+          report = Output;
+        }
+      });
+    }
+    return report;
+  };
 
+  // ------------------------------------
+  // Render loading screen
+  // ------------------------------------
   if (!instanceData) {
     return (
       <div className={`instance ${className}`}>
         <div className="loading-screen">
           <p>
             Instance data is loading... (If this screen persists, check
-            connection to jupyterlab server)
+            connection to jupyterlab server and/or labslauncher)
           </p>
           <StyledLoadingSpinner />
         </div>
@@ -209,6 +225,8 @@ const InstanceComponent = ({
     );
   }
 
+  const isRunning = ['LAUNCHED'].includes(instanceStatus);
+  const report = getReport(instanceData);
   return (
     <div className={`instance ${className}`}>
       <div className="instance-container">
@@ -299,6 +317,13 @@ const InstanceComponent = ({
           <div className="instance-section-header">
             <h2>Output files</h2>
             <div className="instance-section-header-controls">
+              {report ? (
+                <button onClick={() => handleOpenOutput(report.path)}>
+                  Open report
+                </button>
+              ) : (
+                ''
+              )}
               <button
                 onClick={() =>
                   instanceData ? handleOpenFolder(instanceData) : ''
