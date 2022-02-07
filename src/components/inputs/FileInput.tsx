@@ -177,8 +177,14 @@ const FileInput = ({
   // Handle path validation
   // ------------------------------------
   const validatePath = async (path: string, format: string) => {
-    if (path === '') {
+    if (
+      [/http:\/\//, /https:\/\//, /^$/, /s3:\/\//].some(rx => rx.test(path))
+    ) {
       onChange(id, format, path);
+      if (path === '') {
+        return;
+      }
+      setBrowserError(null);
       return;
     }
     const encodedPath = encodeURIComponent(path);
