@@ -8,36 +8,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const IPYNB = '.ipynb'
 
-// ------------------------------------
-// Notebook doctrack utilities
-// ------------------------------------
-export const getFiles = async (
-  path: string,
-  docTrack: IDocumentManager,
-): Promise<Contents.IModel[]> => {
-  return (await Promise.all<Contents.IModel>(
-    (await docTrack.services.contents.get(path))
-      .content
-      .map((Item: Contents.IModel) => {
-        return Item.type === 'directory'
-          ? getFiles(Item.path, docTrack)
-          : Item
-      })
-  )).flat(Infinity)
-}
-
-export const getNotebooks = async (
-  path: string,
-  docTrack: IDocumentManager,
-): Promise<ITrackedNotebook[]> => {
-  return (await getFiles(path, docTrack))
-    .filter((Item: any) => Item.path.endsWith(IPYNB))
-    .map((Item: any): ITrackedNotebook => ({
-      name: Item.name,
-      path: Item.path,
-      last_modified: Item.last_modified
-    }));
-}
 
 // -----------------------------------------------------------------------------
 // Component
@@ -63,12 +33,62 @@ const NotebooksList = ({
       className?: string;
     }): JSX.Element => {
     
+    // ------------------------------------
+    // Set up state
+    // ------------------------------------
     const [notebooks, setNotebooks] = useState<ITrackedNotebook[]>([]);
     
     const handleUpdateSections = async () => {
         setNotebooks(await getNotebooks(path, docTrack));
     }
+    
+    useEffect(() => {
+      handleUpdateSections()
+      const slotHandleUpdateSections = (e: any) => {
+      handleUpdateSections()
+      }
+  
+      const fileSignal = docTrack.services.contents.fileChanged;
+      fileSignal.connect(slotHandleUpdateSections)
+      return () => {
+      fileSignal.disconnect(slotHandleUpdateSections)
+      }
+    }, [])
 
+    // ------------------------------------
+    // Notebook doctrack utilities
+    // ------------------------------------
+    const getFiles = async (
+      path: string,
+      docTrack: IDocumentManager,
+    ): Promise<Contents.IModel[]> => {
+      return (await Promise.all<Contents.IModel>(
+        (await docTrack.services.contents.get(path))
+          .content
+          .map((Item: Contents.IModel) => {
+            return Item.type === 'directory'
+              ? null
+              : Item
+          })
+      )).filter(Item => !!Item)
+    }
+
+    const getNotebooks = async (
+      path: string,
+      docTrack: IDocumentManager,
+    ): Promise<ITrackedNotebook[]> => {
+      return (await getFiles(path, docTrack))
+        .filter((Item: any) => Item.path.endsWith(IPYNB))
+        .map((Item: any): ITrackedNotebook => ({
+          name: Item.name,
+          path: Item.path,
+          last_modified: Item.last_modified
+        }));
+    }
+
+    // ------------------------------------
+    // Handle formatting notebook entries
+    // ------------------------------------
     const handleExtractName = (path: string): string => {
       return path.split('/').reverse()[0]
         .split('_').join(' ').split('.ipynb').join('')
@@ -77,19 +97,6 @@ const NotebooksList = ({
     const handleFormatUpdated = (modified: string): string => {
       return moment(modified).format("MMMM Do YYYY, h:mm:ss a")
     }
-    
-    useEffect(() => {
-        handleUpdateSections()
-        const slotHandleUpdateSections = (e: any) => {
-        handleUpdateSections()
-        }
-    
-        const fileSignal = docTrack.services.contents.fileChanged;
-        fileSignal.connect(slotHandleUpdateSections)
-        return () => {
-        fileSignal.disconnect(slotHandleUpdateSections)
-        }
-    }, [])
     
     if (notebooks.length === 0) {
         return (

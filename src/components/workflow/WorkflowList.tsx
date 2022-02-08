@@ -38,7 +38,7 @@ const WorkflowsList = ({ className }: IWorkflowsList): JSX.Element => {
         <div className="empty">
           <h2>
             <FontAwesomeIcon icon={faFolderOpen} />
-            No workflows to display.
+            No workflows installed.
           </h2>
         </div>
       </div>
