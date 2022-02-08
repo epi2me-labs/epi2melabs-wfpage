@@ -37,13 +37,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const { commands, shell } = app;
 
     Promise.all([app.restored, settings.load(PLUGIN_ID)]).then(
-      ([, setting]) => {
+      ([, _settings]) => {
         commands.addCommand(COMMAND, {
-          caption: 'Create an EPI2ME Labs workflow launcher',
-          label: 'Workflows (Beta)',
+          caption: 'Create an EPI2ME Labs launcher',
+          label: 'EPI2ME Labs',
           icon: labsLogoIcon,
           execute: () => {
-            const content = new Launcher(app, docTrack);
+            const content = new Launcher(app, docTrack, _settings);
             const widget = new MainAreaWidget<Launcher>({ content });
             widget.title.label = 'EPI2ME Labs';
             shell.add(widget, 'main');

@@ -54,13 +54,15 @@ const TextInput = ({
         onChange={e => onChange(id, format, e.target.value)}
       />
     </label>
-    {error ? (
-      <div className="error">
-        <p>Error: {error}</p>
-      </div>
-    ) : (
-      ''
-    )}
+    {error.length ? (
+        <div className="error">
+          {error.map(Error => (
+            <p>Error: {Error}</p>
+          ))}
+        </div>
+      ) : (
+        ''
+      )}
   </div>
 );
 

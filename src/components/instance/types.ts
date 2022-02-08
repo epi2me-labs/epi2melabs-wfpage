@@ -5,6 +5,7 @@ export type InstanceParams = {
 export type Instance = {
   id: string;
   path: string;
+  name: string;
   status: string;
   workflow: string;
   created_at: string;

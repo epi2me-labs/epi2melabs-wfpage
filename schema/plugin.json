@@ -1,15 +1,19 @@
 {
-  "jupyter.lab.shortcuts": [],
   "title": "epi2melabs-wfpage",
-  "description": "epi2melabs-wfpage settings.",
+  "description": "Basic configuration.",
   "type": "object",
   "properties": {
-    "port": {
+    "working_dir": {
       "type": "string",
-      "title": "Labslauncher comms port",
-      "description": "Sets the comms port for accessing labslauncher's api.",
-      "default": "9000"
+      "title": "Working Directory",
+      "description": "Sets the location to monitor for active notebooks. Absolute path, no trailing slash.",
+      "default": "/epi2melabs/notebooks"
+    },
+    "template_dir": {
+      "type": "string",
+      "title": "Template Directory",
+      "description": "Sets the location to monitor for template notebooks. Absolute path, no trailing slash.",
+      "default": "/epi2me-resources/tutorials"
     }
-  },
-  "additionalProperties": false
+  }
 }

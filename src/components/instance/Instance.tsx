@@ -189,7 +189,7 @@ const InstanceComponent = ({
       })
     });
     if (d && outcome.deleted) {
-      navigate('/instances');
+      navigate('/workflows');
     }
   };
 
@@ -199,9 +199,9 @@ const InstanceComponent = ({
   const getReport = (instanceData: Instance): null | GenericObject => {
     let report = null;
     if (instanceOutputs.length) {
-      instanceOutputs.forEach(Output => {
-        if (Output.name === `${instanceData.workflow}-report.html`) {
-          report = Output;
+      instanceOutputs.forEach(Item => {
+        if (Item.name === `${instanceData.workflow}-report.html`) {
+          report = Item;
         }
       });
     }
@@ -244,7 +244,7 @@ const InstanceComponent = ({
               ''
             )}
           </div>
-          <h1>ID: {routerParams.id}</h1>
+          <h1>{instanceData.name}</h1>
           <div className="instance-details">
             <div className="instance-status">
               <StyledStatusIndicator status={instanceStatus || 'UNKNOWN'} />
@@ -252,6 +252,7 @@ const InstanceComponent = ({
             </div>
             <p>Created: {instanceData.created_at}</p>
             <p>Updated: {instanceData.updated_at}</p>
+            <p>ID: {routerParams.id}</p>
           </div>
         </div>
 

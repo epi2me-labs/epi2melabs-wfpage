@@ -30,7 +30,7 @@ const InstanceList = ({
     const instances = await requestAPI<any>('instances');
     const instanceList: Instance[] = Object.values(instances);
     const trackedInstanceList = instanceList.filter((I: Instance) =>
-      ['LAUNCHED'].includes(I.status)
+      ['UNKNOWN', 'LAUNCHED'].includes(I.status)
     );
 
     setInstances(instanceList);
@@ -53,10 +53,6 @@ const InstanceList = ({
           headers: {
             'Content-Type': 'application/json'
           }
-          // Can't do this at the moment because the fetch guys think they're cool
-          // body: JSON.stringify({
-          //   instances: trackedIds
-          // })
         });
       })
     );
@@ -86,7 +82,21 @@ const InstanceList = ({
   const visibleInstances = onlyTracked ? trackedInstances : instances;
   const sortedVisibleInstances = visibleInstances.sort(sortInstances);
 
-  return sortedVisibleInstances.length !== 0 ? (
+  if (sortedVisibleInstances.length === 0) {
+    return (
+      <div className={`instance-list ${className}`}>
+        <div className="empty">
+          <div>
+            <h2>
+              No workflows instances yet... 
+            </h2>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
     <div className={`instance-list ${className}`}>
       <ul>
         {sortedVisibleInstances.map((Instance: Instance) => (
@@ -94,7 +104,7 @@ const InstanceList = ({
             <div className="instance">
               <div>
                 <div className="instance-header">
-                  <h2>ID: {Instance.id}</h2>
+                  <h2>{Instance.name}</h2>
                   <span>
                     {Instance.workflow} | Created: {Instance.created_at}
                   </span>
@@ -119,18 +129,7 @@ const InstanceList = ({
         ))}
       </ul>
     </div>
-  ) : (
-    <div className={`instance-list ${className}`}>
-      <div className="empty">
-        <div>
-          <p>No workflows currently running...</p>
-          <Link className="instance-link" to={'/instances'}>
-            <div>View history</div>
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
+  )
 };
 
 // -----------------------------------------------------------------------------

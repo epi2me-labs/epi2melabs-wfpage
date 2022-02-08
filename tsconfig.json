@@ -18,6 +18,10 @@
     "strict": true,
     "strictNullChecks": true,
     "target": "es2017",
+    "lib": [
+      "es2019",
+      "dom"
+    ],
     "types": []
   },
   "include": [

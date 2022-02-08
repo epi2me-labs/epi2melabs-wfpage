@@ -79,7 +79,7 @@ const ParameterSectionComponent = ({
               <StyledParameterComponent
                 id={key}
                 schema={value}
-                error={errors[key]}
+                error={errors[key] || []}
                 onChange={onChange}
               />
             </li>

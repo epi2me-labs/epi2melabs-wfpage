@@ -24,8 +24,8 @@ interface IHeader {
 const Header = ({ className }: IHeader): JSX.Element => (
   <header className={`header ${className}`}>
     <div className="header-section left-navigation">
+      <Link to="/notebooks">Notebooks</Link>
       <Link to="/workflows">Workflows</Link>
-      <Link to="/instances">History</Link>
     </div>
     <div className="header-section center-navigation">
       <Link to="/">

@@ -4,22 +4,27 @@ import { ReactWidget } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import StyledInstance from './components/instance/Instance';
 import StyledWorkflow from './components/workflow/Workflow';
+import StyledNotebooksPanel from './components/NotebooksPanel';
 import StyledWorkflowsPanel from './components/WorkflowsPanel';
-import StyledInstancesPanel from './components/InstancesPanel';
-import StyledIndexPanel from './components/IndexPanel';
 import StyledHeader from './components/Header';
 import StyledFooter from './components/Footer';
 import styled from 'styled-components';
 
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 const LauncherContainer = styled.div``;
 
 export class Launcher extends ReactWidget {
-  constructor(app: JupyterFrontEnd, docTrack: IDocumentManager) {
+  constructor(
+    app: JupyterFrontEnd,
+    docTrack: IDocumentManager,
+    settings: ISettingRegistry.ISettings)
+  {
     super();
     this.app = app;
     this.docTrack = docTrack;
+    this.settings = settings;
     this.addClass('jp-ReactWidget');
     this.addClass('epi2melabs-wfpage-widget');
   }
@@ -43,8 +48,18 @@ export class Launcher extends ReactWidget {
                     <StyledInstance docTrack={this.docTrack} app={this.app} />
                   }
                 />
-                <Route path="/instances" element={<StyledInstancesPanel />} />
-                <Route path="/" element={<StyledIndexPanel />} />
+                <Route path="/notebooks" element={
+                  <StyledNotebooksPanel
+                    docTrack={this.docTrack}
+                    templateDir={this.settings.get('template_dir').composite as string}
+                    workDir={this.settings.get('working_dir').composite as string} />
+                } />
+                <Route path="/" element={
+                  <StyledNotebooksPanel
+                    docTrack={this.docTrack}
+                    templateDir={this.settings.get('template_dir').composite as string}
+                    workDir={this.settings.get('working_dir').composite as string} />
+                } />
               </Routes>
             </div>
             <StyledFooter />
@@ -56,4 +71,5 @@ export class Launcher extends ReactWidget {
 
   public app: JupyterFrontEnd;
   public docTrack: IDocumentManager;
+  public settings: ISettingRegistry.ISettings;
 }

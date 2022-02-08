@@ -15,38 +15,48 @@ const WorkflowsList = ({ className }: IWorkflowsList): JSX.Element => {
   // ------------------------------------
   // Set up state
   // ------------------------------------
-  const [workflows, setWorkflows] = useState<Workflow[] | []>([]);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
 
   // ------------------------------------
   // Handle component initialisation
   // ------------------------------------
   const getWorkflows = async () => {
     const wfs = await requestAPI<any>('workflows');
-    setWorkflows(wfs);
+    setWorkflows(Object.values(wfs))
   };
 
   useEffect(() => {
     getWorkflows();
   }, []);
 
-  return workflows ? (
+  if (workflows.length === 0) {
+    return (
+      <div className={`workflows-list empty ${className}`}>
+        <div className="empty">
+          <h2>No workflows to display.</h2>
+        </div>
+      </div>
+    )
+  }
+
+  return (
     <div className={`workflows-list ${className}`}>
       <ul>
-        {(Object.values(workflows) as any[]).map((Workflow: Workflow) => (
+        {workflows.map((Item: Workflow) => (
           <li>
             <div className="workflow">
               <div>
                 <div className="workflow-header">
-                  <span>Version {Workflow.defaults.wfversion}</span>
-                  <h3>{Workflow.name}</h3>
+                  <span>Version {Item.defaults.wfversion}</span>
+                  <h3>{Item.name}</h3>
                 </div>
                 <div className="workflow-buttons">
-                  <a className="workflow-url" href={Workflow.url}>
+                  <a className="workflow-url" href={Item.url}>
                     Github
                   </a>
                   <Link
                     className="workflow-link"
-                    to={`/workflows/${Workflow.name}`}
+                    to={`/workflows/${Item.name}`}
                   >
                     <div>Open workflow</div>
                   </Link>
@@ -57,13 +67,7 @@ const WorkflowsList = ({ className }: IWorkflowsList): JSX.Element => {
         ))}
       </ul>
     </div>
-  ) : (
-    <div className={`workflows-list empty ${className}`}>
-      <div className="empty">
-        <div>No workflows to display.</div>
-      </div>
-    </div>
-  );
+  )
 };
 
 // -----------------------------------------------------------------------------

@@ -60,10 +60,11 @@ const BooleanInput = ({
           <FontAwesomeIcon icon={isChecked ? faCheck : faTimes} />
         </span>
       </label>
-
-      {error ? (
+      {error.length ? (
         <div className="error">
-          <p>Error: {error}</p>
+          {error.map(Error => (
+            <p>Error: {Error}</p>
+          ))}
         </div>
       ) : (
         ''
