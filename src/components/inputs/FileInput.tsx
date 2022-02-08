@@ -105,7 +105,7 @@ const FileInput = ({
   // Set up state
   // ------------------------------------
   const [selectedPath, setSelectedPath] = useState<string>('');
-  const [browserError, setBrowserError] = useState<string[] | null>(null);
+  const [browserError, setBrowserError] = useState<string | null>(null);
   const [browserLocation, setBrowserLocation] = useState<string>('/');
   const [browserContents, setBrowserContents] = useState<IPath[]>([]);
   const [browserOpen, setBrowserOpen] = useState(false);
@@ -113,12 +113,12 @@ const FileInput = ({
 
   const mappedFormat = mapFormatToEndpoint(format);
 
-  const errors = [];
-  if (error) {
-    errors.push(error);
+  let errors: string[] = [];
+  if (error.length) {
+    errors = [...error];
   }
   if (browserError) {
-    errors.push(browserError);
+    errors = [browserError, ...errors];
   }
 
   // ------------------------------------
@@ -177,7 +177,10 @@ const FileInput = ({
   // Handle path validation
   // ------------------------------------
   const validatePath = async (path: string, format: string) => {
-    if (path === '') {
+    if (
+      [/http:\/\//, /https:\/\//, /^$/, /s3:\/\//].some(rx => rx.test(path))
+    ) {
+      setBrowserError(null);
       onChange(id, format, path);
       return;
     }
@@ -187,6 +190,7 @@ const FileInput = ({
     });
     if (!data.exists) {
       setBrowserError(data.error);
+      onChange(id, format, '');
       return;
     }
     setBrowserError(null);
@@ -268,11 +272,10 @@ const FileInput = ({
       ) : (
         ''
       )}
-
       {errors.length ? (
         <div className="error">
-          {errors.map(Error => (
-            <p>Error: {Error}</p>
+          {errors.map(Err => (
+            <p>Error: {Err}</p>
           ))}
         </div>
       ) : (

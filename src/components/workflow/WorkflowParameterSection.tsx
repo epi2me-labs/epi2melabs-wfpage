@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
-import { faCaretDown, faCaretUp, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { fas, faCaretDown, faCaretUp, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { IconName, IconPrefix } from '@fortawesome/fontawesome-svg-core';
 import StyledParameterComponent from './WorkflowParameter';
 import { ParameterSection } from './schema';
@@ -79,7 +78,7 @@ const ParameterSectionComponent = ({
               <StyledParameterComponent
                 id={key}
                 schema={value}
-                error={errors[key]}
+                error={errors[key] || []}
                 onChange={onChange}
               />
             </li>

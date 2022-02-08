@@ -107,16 +107,14 @@ class Instance(LauncherAPIHandler):
             self.finish(json.dumps({}))
             return
 
-        name = payload['workflow']
+        name = payload['name']
+        wf_name = payload['workflow']
         params = payload['params']
 
-        created, instance = self.launcher.create_instance(
-            name, params)
+        instanceresp = self.launcher.create_instance(
+            name, wf_name, params)
 
-        self.finish(json.dumps({
-            'created': created,
-            'instance': instance
-        }))
+        self.finish(json.dumps(instanceresp))
 
     @tornado.web.authenticated
     def delete(self, instance_id: Union[str, None] = None) -> None:

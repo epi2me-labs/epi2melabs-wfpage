@@ -3,6 +3,9 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { requestAPI } from '../../handler';
 import { Workflow } from './schema';
+import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 
 // -----------------------------------------------------------------------------
 // Component
@@ -15,38 +18,51 @@ const WorkflowsList = ({ className }: IWorkflowsList): JSX.Element => {
   // ------------------------------------
   // Set up state
   // ------------------------------------
-  const [workflows, setWorkflows] = useState<Workflow[] | []>([]);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
 
   // ------------------------------------
   // Handle component initialisation
   // ------------------------------------
   const getWorkflows = async () => {
     const wfs = await requestAPI<any>('workflows');
-    setWorkflows(wfs);
+    setWorkflows(Object.values(wfs))
   };
 
   useEffect(() => {
     getWorkflows();
   }, []);
 
-  return workflows ? (
+  if (workflows.length === 0) {
+    return (
+      <div className={`workflows-list empty ${className}`}>
+        <div className="empty">
+          <h2>
+            <FontAwesomeIcon icon={faFolderOpen} />
+            No workflows installed.
+          </h2>
+        </div>
+      </div>
+    )
+  }
+
+  return (
     <div className={`workflows-list ${className}`}>
       <ul>
-        {(Object.values(workflows) as any[]).map((Workflow: Workflow) => (
+        {workflows.map((Item: Workflow) => (
           <li>
             <div className="workflow">
               <div>
                 <div className="workflow-header">
-                  <span>Version {Workflow.defaults.wfversion}</span>
-                  <h3>{Workflow.name}</h3>
+                  <span>Version {Item.defaults.wfversion}</span>
+                  <h3>{Item.name}</h3>
                 </div>
                 <div className="workflow-buttons">
-                  <a className="workflow-url" href={Workflow.url}>
+                  <a className="workflow-url" href={Item.url}>
                     Github
                   </a>
                   <Link
                     className="workflow-link"
-                    to={`/workflows/${Workflow.name}`}
+                    to={`/workflows/${Item.name}`}
                   >
                     <div>Open workflow</div>
                   </Link>
@@ -57,13 +73,7 @@ const WorkflowsList = ({ className }: IWorkflowsList): JSX.Element => {
         ))}
       </ul>
     </div>
-  ) : (
-    <div className={`workflows-list empty ${className}`}>
-      <div className="empty">
-        <div>No workflows to display.</div>
-      </div>
-    </div>
-  );
+  )
 };
 
 // -----------------------------------------------------------------------------
@@ -93,6 +103,11 @@ const StyledWorkflowsList = styled(WorkflowsList)`
     border-radius: 4px;
     transition: box-shadow 0.25s ease, transform 0.25s ease;
     background-color: #ffffff;
+  }
+
+  .empty svg {
+    padding-right: 15px;
+    color: lightgray;
   }
 
   .workflow {

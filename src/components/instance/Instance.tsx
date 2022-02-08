@@ -136,7 +136,7 @@ const InstanceComponent = ({
   };
 
   // ------------------------------------
-  // Handle retry workflow
+  // Handle switching logs
   // ------------------------------------
   const handleChangingLog = (path: string) => {
     if (path !== selectedLog) {
@@ -189,19 +189,35 @@ const InstanceComponent = ({
       })
     });
     if (d && outcome.deleted) {
-      navigate('/instances');
+      navigate('/workflows');
     }
   };
 
-  const isRunning = ['LAUNCHED'].includes(instanceStatus);
+  // ------------------------------------
+  // Handle find report
+  // ------------------------------------
+  const getReport = (instanceData: Instance): null | GenericObject => {
+    let report = null;
+    if (instanceOutputs.length) {
+      instanceOutputs.forEach(Item => {
+        if (Item.name === `${instanceData.workflow}-report.html`) {
+          report = Item;
+        }
+      });
+    }
+    return report;
+  };
 
+  // ------------------------------------
+  // Render loading screen
+  // ------------------------------------
   if (!instanceData) {
     return (
       <div className={`instance ${className}`}>
         <div className="loading-screen">
           <p>
             Instance data is loading... (If this screen persists, check
-            connection to jupyterlab server)
+            connection to jupyterlab server and/or labslauncher)
           </p>
           <StyledLoadingSpinner />
         </div>
@@ -209,6 +225,8 @@ const InstanceComponent = ({
     );
   }
 
+  const isRunning = ['LAUNCHED'].includes(instanceStatus);
+  const report = getReport(instanceData);
   return (
     <div className={`instance ${className}`}>
       <div className="instance-container">
@@ -226,7 +244,7 @@ const InstanceComponent = ({
               ''
             )}
           </div>
-          <h1>ID: {routerParams.id}</h1>
+          <h1>{instanceData.name}</h1>
           <div className="instance-details">
             <div className="instance-status">
               <StyledStatusIndicator status={instanceStatus || 'UNKNOWN'} />
@@ -234,6 +252,7 @@ const InstanceComponent = ({
             </div>
             <p>Created: {instanceData.created_at}</p>
             <p>Updated: {instanceData.updated_at}</p>
+            <p>ID: {routerParams.id}</p>
           </div>
         </div>
 
@@ -299,6 +318,13 @@ const InstanceComponent = ({
           <div className="instance-section-header">
             <h2>Output files</h2>
             <div className="instance-section-header-controls">
+              {report ? (
+                <button onClick={() => handleOpenOutput(report.path)}>
+                  Open report
+                </button>
+              ) : (
+                ''
+              )}
               <button
                 onClick={() =>
                   instanceData ? handleOpenFolder(instanceData) : ''

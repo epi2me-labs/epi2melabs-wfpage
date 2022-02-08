@@ -36,19 +36,27 @@ const plugin: JupyterFrontEndPlugin<void> = {
   ) => {
     const { commands, shell } = app;
 
+    const createLauncherWidget = (
+      shell: JupyterFrontEnd.IShell,
+      docTrack: IDocumentManager,
+      plugin_settings: ISettingRegistry.ISettings
+    ) => {
+      const content = new Launcher(app, docTrack, plugin_settings);
+      const widget = new MainAreaWidget<Launcher>({ content });
+      widget.title.label = 'EPI2ME Labs';
+      shell.add(widget, 'main');
+    }
+
     Promise.all([app.restored, settings.load(PLUGIN_ID)]).then(
-      ([, setting]) => {
+      ([, _settings]) => {
         commands.addCommand(COMMAND, {
-          caption: 'Create an EPI2ME Labs workflow launcher',
-          label: 'Workflows (Beta)',
+          caption: 'Create an EPI2ME Labs launcher',
+          label: 'EPI2ME Labs',
           icon: labsLogoIcon,
-          execute: () => {
-            const content = new Launcher(app, docTrack);
-            const widget = new MainAreaWidget<Launcher>({ content });
-            widget.title.label = 'EPI2ME Labs';
-            shell.add(widget, 'main');
-          }
+          execute: () => createLauncherWidget(shell, docTrack, _settings)
         });
+
+        createLauncherWidget(shell, docTrack, _settings);
 
         if (launcher) {
           launcher.add({

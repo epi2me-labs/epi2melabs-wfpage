@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { requestAPI } from '../../handler';
-import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GenericStringObject, GenericObject } from '../../types';
 import { validateSchema, parseValidationErrors } from '../../schema';
 import StyledWorkflowParameterSection from './WorkflowParameterSection';
+import styled from 'styled-components';
 import {
   Workflow,
   WorkflowDefaults,
@@ -33,6 +33,8 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   const [workflowActiveSections, setWorkflowActiveSections] = useState<
     ParameterSection[]
   >([]);
+  const [instanceCreateError, setInstanceCreateError] = useState<string | null>(null)
+  const [instanceName, setInstanceName] = useState<string | null>();
 
   // ------------------------------------
   // Handle component initialisation
@@ -161,22 +163,40 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   }, [workflowParams]);
 
   // ------------------------------------
+  // Handle instance naming
+  // ------------------------------------
+  const handleInstanceRename = (name: string) => {
+    if (name === '' || name.length > 50 || name.length < 10) {
+      setInstanceName(null)
+      return
+    }
+    setInstanceName(name)
+  }
+
+  // ------------------------------------
   // Handle workflow launch
   // ------------------------------------
   const launchWorkflow = async () => {
-    if (!workflowParamsValid) {
+    if (!workflowParamsValid || !instanceName) {
       return;
     }
-    const { instance } = await requestAPI<any>('instances', {
+    const { created, instance, error } = await requestAPI<any>('instances', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         workflow: params.name,
-        params: workflowParams
+        params: workflowParams,
+        ...instanceName ? { name: instanceName } : {}
       })
     });
+    if (error) {
+      setInstanceCreateError(error)
+    }
+    if (!created) {
+      return
+    }
     navigate(`/instances/${instance.id}`);
   };
 
@@ -194,9 +214,23 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
           </div>
         </div>
 
+        {/* Instance name */}
+        <div className="workflow-section workflow-name">
+          <h2>1. Name workflow run</h2>
+          <div className="workflow-section-contents">
+            <input
+              id="worflow-name-input"
+              type="text"
+              placeholder={'E.g. my_experiment (Between 10 and 50 characters).'}
+              onChange={e => handleInstanceRename(e.target.value)}
+              maxLength={50}
+            />
+          </div>
+        </div>
+
         {/* Workflow params */}
         <div className="workflow-section workflow-parameter-sections">
-          <h2>1. Choose parameters</h2>
+          <h2>2. Choose parameters</h2>
           <div className="workflow-section-contents">
             <ul>
               {workflowActiveSections.map(Section => (
@@ -220,14 +254,19 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
 
         {/* Workflow launch */}
         <div className="workflow-section workflow-launch-control">
-          <h2>2. Launch workflow</h2>
+          <h2>3. Launch workflow</h2>
           <div className="workflow-section-contents">
             <div
               className={`launch-control ${
-                workflowParamsValid ? 'active' : 'inactive'
+                workflowParamsValid && instanceName ? 'active' : 'inactive'
               }`}
             >
               <button onClick={() => launchWorkflow()}>Run command</button>
+              {instanceCreateError ? (
+                <div className='error'>
+                    <p>Error: {instanceCreateError}</p>
+                </div>
+              ) : ('')}
             </div>
           </div>
         </div>
@@ -304,6 +343,36 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
     border-radius: 4px;
   }
 
+  .workflow-name .workflow-section-contents {
+    border-radius: 4px;
+    background-color: #f6f6f6;
+  }
+
+  .workflow-name input {
+    margin: 0;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 15px 25px;
+
+    font-size: 12px;
+    font-family: monospace;
+    letter-spacing: 0.05em;
+    line-height: 1em;
+
+    color: black;
+    background-color: #f3f3f3;
+    border: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    outline: none;
+
+    transition: 0.2s ease-in-out all;
+  }
+
+  .workflow-name input:hover {
+    border: 1px solid #005c75;
+  }
+
   .workflow-launch-control .workflow-section-contents {
     padding: 15px;
     border-radius: 4px;
@@ -334,6 +403,10 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
     cursor: pointer;
     background-color: #1d9655;
     color: white;
+  }
+  .workflow-launch-control .error p {
+    padding: 15px 0 0 0;
+    color: #e34040;
   }
 `;
 
