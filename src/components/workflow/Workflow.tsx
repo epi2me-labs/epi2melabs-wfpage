@@ -173,7 +173,6 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
     setInstanceName(name)
   }
 
-
   // ------------------------------------
   // Handle workflow launch
   // ------------------------------------
