@@ -4,6 +4,8 @@ import { requestAPI } from '../../handler';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { Instance } from './types';
+import { faHistory } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 // -----------------------------------------------------------------------------
 // Component
@@ -88,6 +90,7 @@ const InstanceList = ({
         <div className="empty">
           <div>
             <h2>
+              <FontAwesomeIcon icon={faHistory} />
               No workflows instances yet... 
             </h2>
           </div>
@@ -154,6 +157,11 @@ const StyledInstanceList = styled(InstanceList)`
 
   .empty p {
     padding-bottom: 10px;
+  }
+
+  .empty svg {
+    padding-right: 15px;
+    color: lightgray;
   }
 
   > ul {

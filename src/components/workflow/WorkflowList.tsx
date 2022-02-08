@@ -3,6 +3,9 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { requestAPI } from '../../handler';
 import { Workflow } from './schema';
+import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 
 // -----------------------------------------------------------------------------
 // Component
@@ -33,7 +36,10 @@ const WorkflowsList = ({ className }: IWorkflowsList): JSX.Element => {
     return (
       <div className={`workflows-list empty ${className}`}>
         <div className="empty">
-          <h2>No workflows to display.</h2>
+          <h2>
+            <FontAwesomeIcon icon={faFolderOpen} />
+            No workflows to display.
+          </h2>
         </div>
       </div>
     )
@@ -97,6 +103,11 @@ const StyledWorkflowsList = styled(WorkflowsList)`
     border-radius: 4px;
     transition: box-shadow 0.25s ease, transform 0.25s ease;
     background-color: #ffffff;
+  }
+
+  .empty svg {
+    padding-right: 15px;
+    color: lightgray;
   }
 
   .workflow {

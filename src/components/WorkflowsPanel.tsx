@@ -15,9 +15,9 @@ const WorkflowsPanel = ({ className }: IWorkflowsList): JSX.Element => (
     <div className="index-panel-intro">
       <h1>EPI2ME Labs Workflows</h1>
       <p>
-        EPI2ME Labs maintains a growing collection of workflows covering a range
-        of everyday bioinformatics needs. These are free and open to use by
-        anyone. Browse the list below and get started.
+        EPI2ME Labs is developing a range of workflows covering a variety
+        of everyday bioinformatics needs. Like the notebooks, these are free 
+        and open to use by anyone.
       </p>
     </div>
 

@@ -3,18 +3,14 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 import { Contents } from '@jupyterlab/services';
 import styled from 'styled-components';
 import moment from 'moment';
+import { faBookOpen } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const IPYNB = '.ipynb'
 
-
-export interface ITrackedNotebook {
-  name: string;
-  path: string;
-  last_modified: string;
-  onClick?: (e: string) => void;
-}
-
-
+// ------------------------------------
+// Notebook doctrack utilities
+// ------------------------------------
 export const getFiles = async (
   path: string,
   docTrack: IDocumentManager,
@@ -43,6 +39,16 @@ export const getNotebooks = async (
     }));
 }
 
+// -----------------------------------------------------------------------------
+// Component
+// -----------------------------------------------------------------------------
+export interface ITrackedNotebook {
+  name: string;
+  path: string;
+  last_modified: string;
+  onClick?: (e: string) => void;
+}
+
 const NotebooksList = ({
     path,
     onClick,
@@ -64,7 +70,8 @@ const NotebooksList = ({
     }
 
     const handleExtractName = (path: string): string => {
-      return path.split('/').reverse()[0].split('_').join(' ').split('.ipynb').join('')
+      return path.split('/').reverse()[0]
+        .split('_').join(' ').split('.ipynb').join('')
     }
   
     const handleFormatUpdated = (modified: string): string => {
@@ -88,6 +95,7 @@ const NotebooksList = ({
         return (
           <div className={`notebooks-list empty ${className}`}>
             <div className="empty">
+              <FontAwesomeIcon icon={faBookOpen} />
               <h2>No notebooks to display.</h2>
             </div>
           </div>
@@ -150,6 +158,11 @@ const StyledNotebooksList = styled(NotebooksList)`
     border-radius: 4px;
     transition: box-shadow 0.25s ease, transform 0.25s ease;
     background-color: #ffffff;
+  }
+
+  .empty svg {
+    padding-right: 15px;
+    color: lightgray;
   }
 
   .notebook {
