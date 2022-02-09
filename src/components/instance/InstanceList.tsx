@@ -91,12 +91,12 @@ const InstanceList = ({
           <div>
             <h2>
               <FontAwesomeIcon icon={faHistory} />
-              No workflows instances yet... 
+              No workflows instances yet...
             </h2>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -132,7 +132,7 @@ const InstanceList = ({
         ))}
       </ul>
     </div>
-  )
+  );
 };
 
 // -----------------------------------------------------------------------------

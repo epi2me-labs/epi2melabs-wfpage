@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { fab } from '@fortawesome/free-brands-svg-icons';
-import { fas, faCaretDown, faCaretUp, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import {
+  fas,
+  faCaretDown,
+  faCaretUp,
+  faCheckCircle,
+  faTimesCircle
+} from '@fortawesome/free-solid-svg-icons';
 import { IconName, IconPrefix } from '@fortawesome/fontawesome-svg-core';
 import StyledParameterComponent from './WorkflowParameter';
 import { ParameterSection } from './schema';
@@ -58,17 +64,17 @@ const ParameterSectionComponent = ({
             )}
             {title}
           </h3>
-          <div className='parameter-section-toggle-controls'>
-              {isValid ? (
-                <div className='parameter-section-toggle-errors valid'>
-                  <FontAwesomeIcon icon={faCheckCircle} />
-                </div>
-              ) : (
-                <div className='parameter-section-toggle-errors invalid'>
-                  <p>{Object.keys(errors).length}</p>
-                  <FontAwesomeIcon icon={faTimesCircle} />
-                </div>
-              )}
+          <div className="parameter-section-toggle-controls">
+            {isValid ? (
+              <div className="parameter-section-toggle-errors valid">
+                <FontAwesomeIcon icon={faCheckCircle} />
+              </div>
+            ) : (
+              <div className="parameter-section-toggle-errors invalid">
+                <p>{Object.keys(errors).length}</p>
+                <FontAwesomeIcon icon={faTimesCircle} />
+              </div>
+            )}
             <FontAwesomeIcon icon={isOpen ? faCaretUp : faCaretDown} />
           </div>
         </button>

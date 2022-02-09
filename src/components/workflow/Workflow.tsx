@@ -33,7 +33,9 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   const [workflowActiveSections, setWorkflowActiveSections] = useState<
     ParameterSection[]
   >([]);
-  const [instanceCreateError, setInstanceCreateError] = useState<string | null>(null)
+  const [instanceCreateError, setInstanceCreateError] = useState<string | null>(
+    null
+  );
   const [instanceName, setInstanceName] = useState<string | null>();
 
   // ------------------------------------
@@ -166,12 +168,12 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   // Handle instance naming
   // ------------------------------------
   const handleInstanceRename = (name: string) => {
-    if (name === '' || name.length > 50 || name.length < 10) {
-      setInstanceName(null)
-      return
+    if (name === '' || name.length > 50 || name.length < 1) {
+      setInstanceName(null);
+      return;
     }
-    setInstanceName(name)
-  }
+    setInstanceName(name);
+  };
 
   // ------------------------------------
   // Handle workflow launch
@@ -188,14 +190,14 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
       body: JSON.stringify({
         workflow: params.name,
         params: workflowParams,
-        ...instanceName ? { name: instanceName } : {}
+        ...(instanceName ? { name: instanceName } : {})
       })
     });
     if (error) {
-      setInstanceCreateError(error)
+      setInstanceCreateError(error);
     }
     if (!created) {
-      return
+      return;
     }
     navigate(`/instances/${instance.id}`);
   };
@@ -215,13 +217,17 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
         </div>
 
         {/* Instance name */}
-        <div className="workflow-section workflow-name">
+        <div
+          className={`workflow-section workflow-name ${
+            instanceName ? '' : 'invalid'
+          }`}
+        >
           <h2>1. Name workflow run</h2>
           <div className="workflow-section-contents">
             <input
               id="worflow-name-input"
               type="text"
-              placeholder={'E.g. my_experiment (Between 10 and 50 characters).'}
+              placeholder={'E.g. my_experiment (up to 50 characters long).'}
               onChange={e => handleInstanceRename(e.target.value)}
               maxLength={50}
             />
@@ -263,10 +269,12 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
             >
               <button onClick={() => launchWorkflow()}>Run command</button>
               {instanceCreateError ? (
-                <div className='error'>
-                    <p>Error: {instanceCreateError}</p>
+                <div className="error">
+                  <p>Error: {instanceCreateError}</p>
                 </div>
-              ) : ('')}
+              ) : (
+                ''
+              )}
             </div>
           </div>
         </div>
@@ -371,6 +379,14 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
 
   .workflow-name input:hover {
     border: 1px solid #005c75;
+  }
+
+  .workflow-name.invalid input {
+    color: #e34040;
+  }
+
+  .workflow-name.invalid input::placeholder {
+    color: #e34040;
   }
 
   .workflow-launch-control .workflow-section-contents {
