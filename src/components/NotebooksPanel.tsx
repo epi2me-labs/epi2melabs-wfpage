@@ -8,66 +8,66 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 // -----------------------------------------------------------------------------
 
 interface INotebooksPanel {
-    className?: string;
-    docTrack: IDocumentManager;
-    templateDir: string;
-    workDir: string;
+  className?: string;
+  docTrack: IDocumentManager;
+  templateDir: string;
+  workDir: string;
 }
 
 const NotebooksPanel = ({
-    className,
-    docTrack,
-    templateDir,
-    workDir
+  className,
+  docTrack,
+  templateDir,
+  workDir
 }: INotebooksPanel): JSX.Element => {
-
-const handleNotebookClone = async (
-    path: string, docTrack: IDocumentManager) => {
+  const handleNotebookClone = async (
+    path: string,
+    docTrack: IDocumentManager
+  ) => {
     await docTrack.copy(path, workDir).then(e => {
-        docTrack.open(path)
-    })
-}
+      docTrack.open(path);
+    });
+  };
 
-const handleNotebookOpen = (
-    path: string, docTrack: IDocumentManager) => {
-    docTrack.open(path)
-}
-    
-return (
-  <div className={`index-panel ${className}`}>
-    <div className="index-panel-intro">
-      <h1>EPI2ME Labs Notebooks</h1>
-      <p>
-        EPI2ME Labs maintains a growing collection of notebooks on a 
-        range of topics from basic quality control to genome assembly. 
-        These are free and open to use by anyone. Browse the list below 
-        and get started.
-      </p>
-    </div>
+  const handleNotebookOpen = (path: string, docTrack: IDocumentManager) => {
+    docTrack.open(path);
+  };
 
-    {/* Recent */}
-    <div className="index-panel-section">
-      <h2>Recent notebooks</h2>
-          <StyledNotebooksList
-            path={workDir}
-            onClick={handleNotebookOpen}
-            docTrack={docTrack}
-            buttonText='Open notebook'
-          />
-    </div>
+  return (
+    <div className={`index-panel ${className}`}>
+      <div className="index-panel-intro">
+        <h1>EPI2ME Labs Notebooks</h1>
+        <p>
+          EPI2ME Labs maintains a growing collection of notebooks on a range of
+          topics from basic quality control to genome assembly. These are free
+          and open to use by anyone. Browse the list below and get started.
+        </p>
+      </div>
 
-    {/* Available */}
-    <div className="index-panel-section">
-      <h2>Available notebooks</h2>
+      {/* Recent */}
+      <div className="index-panel-section">
+        <h2>Recent notebooks</h2>
         <StyledNotebooksList
-            path={templateDir}
-            onClick={handleNotebookClone}
-            docTrack={docTrack}
-            buttonText='Copy and open'
+          path={workDir}
+          onClick={handleNotebookOpen}
+          docTrack={docTrack}
+          buttonText="Open notebook"
         />
+      </div>
+
+      {/* Available */}
+      <div className="index-panel-section">
+        <h2>Available notebooks</h2>
+        <StyledNotebooksList
+          path={templateDir}
+          onClick={handleNotebookClone}
+          docTrack={docTrack}
+          buttonText="Copy and open"
+        />
+      </div>
     </div>
-  </div>
-)};
+  );
+};
 
 // -----------------------------------------------------------------------------
 // Component Styles
