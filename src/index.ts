@@ -45,7 +45,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       const widget = new MainAreaWidget<Launcher>({ content });
       widget.title.label = 'EPI2ME Labs';
       shell.add(widget, 'main');
-    }
+    };
 
     Promise.all([app.restored, settings.load(PLUGIN_ID)]).then(
       ([, _settings]) => {
@@ -64,6 +64,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
             category: CATEGORY
           });
         }
+
+        app.commands.execute('filebrowser:hide-main');
       }
     );
   }
