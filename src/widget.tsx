@@ -19,8 +19,8 @@ export class Launcher extends ReactWidget {
   constructor(
     app: JupyterFrontEnd,
     docTrack: IDocumentManager,
-    settings: ISettingRegistry.ISettings)
-  {
+    settings: ISettingRegistry.ISettings
+  ) {
     super();
     this.app = app;
     this.docTrack = docTrack;
@@ -48,18 +48,34 @@ export class Launcher extends ReactWidget {
                     <StyledInstance docTrack={this.docTrack} app={this.app} />
                   }
                 />
-                <Route path="/notebooks" element={
-                  <StyledNotebooksPanel
-                    docTrack={this.docTrack}
-                    templateDir={this.settings.get('template_dir').composite as string}
-                    workDir={this.settings.get('working_dir').composite as string} />
-                } />
-                <Route path="/" element={
-                  <StyledNotebooksPanel
-                    docTrack={this.docTrack}
-                    templateDir={this.settings.get('template_dir').composite as string}
-                    workDir={this.settings.get('working_dir').composite as string} />
-                } />
+                <Route
+                  path="/notebooks"
+                  element={
+                    <StyledNotebooksPanel
+                      docTrack={this.docTrack}
+                      templateDir={
+                        this.settings.get('template_dir').composite as string
+                      }
+                      workDir={
+                        this.settings.get('working_dir').composite as string
+                      }
+                    />
+                  }
+                />
+                <Route
+                  path="/"
+                  element={
+                    <StyledNotebooksPanel
+                      docTrack={this.docTrack}
+                      templateDir={
+                        this.settings.get('template_dir').composite as string
+                      }
+                      workDir={
+                        this.settings.get('working_dir').composite as string
+                      }
+                    />
+                  }
+                />
               </Routes>
             </div>
             <StyledFooter />

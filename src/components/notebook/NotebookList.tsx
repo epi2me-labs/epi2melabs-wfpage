@@ -6,8 +6,7 @@ import moment from 'moment';
 import { faBookOpen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-const IPYNB = '.ipynb'
-
+const IPYNB = '.ipynb';
 
 // -----------------------------------------------------------------------------
 // Component
@@ -20,123 +19,127 @@ export interface ITrackedNotebook {
 }
 
 const NotebooksList = ({
-    path,
-    onClick,
-    docTrack,
-    buttonText,
-    className
-    }: {
-      path: string,
-      onClick: CallableFunction,
-      docTrack: IDocumentManager,
-      buttonText: string;
-      className?: string;
-    }): JSX.Element => {
-    
-    // ------------------------------------
-    // Set up state
-    // ------------------------------------
-    const [notebooks, setNotebooks] = useState<ITrackedNotebook[]>([]);
-    
-    const handleUpdateSections = async () => {
-        setNotebooks(await getNotebooks(path, docTrack));
-    }
-    
-    useEffect(() => {
-      handleUpdateSections()
-      const slotHandleUpdateSections = (e: any) => {
-      handleUpdateSections()
-      }
-  
-      const fileSignal = docTrack.services.contents.fileChanged;
-      fileSignal.connect(slotHandleUpdateSections)
-      return () => {
-      fileSignal.disconnect(slotHandleUpdateSections)
-      }
-    }, [])
+  path,
+  onClick,
+  docTrack,
+  buttonText,
+  className
+}: {
+  path: string;
+  onClick: CallableFunction;
+  docTrack: IDocumentManager;
+  buttonText: string;
+  className?: string;
+}): JSX.Element => {
+  // ------------------------------------
+  // Set up state
+  // ------------------------------------
+  const [notebooks, setNotebooks] = useState<ITrackedNotebook[]>([]);
 
-    // ------------------------------------
-    // Notebook doctrack utilities
-    // ------------------------------------
-    const getFiles = async (
-      path: string,
-      docTrack: IDocumentManager,
-    ): Promise<Contents.IModel[]> => {
-      return (await Promise.all<Contents.IModel>(
-        (await docTrack.services.contents.get(path))
-          .content
-          .map((Item: Contents.IModel) => {
-            return Item.type === 'directory'
-              ? null
-              : Item
-          })
-      )).filter(Item => !!Item)
-    }
+  const handleUpdateSections = async () => {
+    setNotebooks(await getNotebooks(path, docTrack));
+  };
 
-    const getNotebooks = async (
-      path: string,
-      docTrack: IDocumentManager,
-    ): Promise<ITrackedNotebook[]> => {
-      return (await getFiles(path, docTrack))
-        .filter((Item: any) => Item.path.endsWith(IPYNB))
-        .map((Item: any): ITrackedNotebook => ({
+  useEffect(() => {
+    handleUpdateSections();
+    const slotHandleUpdateSections = (e: any) => {
+      handleUpdateSections();
+    };
+
+    const fileSignal = docTrack.services.contents.fileChanged;
+    fileSignal.connect(slotHandleUpdateSections);
+    return () => {
+      fileSignal.disconnect(slotHandleUpdateSections);
+    };
+  }, []);
+
+  // ------------------------------------
+  // Notebook doctrack utilities
+  // ------------------------------------
+  const getFiles = async (
+    path: string,
+    docTrack: IDocumentManager
+  ): Promise<Contents.IModel[]> => {
+    return (
+      await Promise.all<Contents.IModel>(
+        (
+          await docTrack.services.contents.get(path)
+        ).content.map((Item: Contents.IModel) => {
+          return Item.type === 'directory' ? null : Item;
+        })
+      )
+    ).filter(Item => !!Item);
+  };
+
+  const getNotebooks = async (
+    path: string,
+    docTrack: IDocumentManager
+  ): Promise<ITrackedNotebook[]> => {
+    return (await getFiles(path, docTrack))
+      .filter((Item: any) => Item.path.endsWith(IPYNB))
+      .map(
+        (Item: any): ITrackedNotebook => ({
           name: Item.name,
           path: Item.path,
           last_modified: Item.last_modified
-        }));
-    }
+        })
+      );
+  };
 
-    // ------------------------------------
-    // Handle formatting notebook entries
-    // ------------------------------------
-    const handleExtractName = (path: string): string => {
-      return path.split('/').reverse()[0]
-        .split('_').join(' ').split('.ipynb').join('')
-    }
-  
-    const handleFormatUpdated = (modified: string): string => {
-      return moment(modified).format("MMMM Do YYYY, h:mm:ss a")
-    }
-    
-    if (notebooks.length === 0) {
-        return (
-          <div className={`notebooks-list empty ${className}`}>
-            <div className="empty">
-              <FontAwesomeIcon icon={faBookOpen} />
-              <h2>No notebooks to display.</h2>
-            </div>
-          </div>
-        )
-    }
-  
+  // ------------------------------------
+  // Handle formatting notebook entries
+  // ------------------------------------
+  const handleExtractName = (path: string): string => {
+    return path
+      .split('/')
+      .reverse()[0]
+      .split('_')
+      .join(' ')
+      .split('.ipynb')
+      .join('');
+  };
+
+  const handleFormatUpdated = (modified: string): string => {
+    return moment(modified).format('MMMM Do YYYY, h:mm:ss a');
+  };
+
+  if (notebooks.length === 0) {
     return (
-        <div className={`notebooks-list ${className}`}>
-          <ul>
-              {notebooks.map(Item => (
-              <li>
-                
-                <div className="notebook">
-                  <div>
-                    <div className="notebook-header">
-                      <span>
-                        Last modified: {handleFormatUpdated(Item.last_modified)}
-                      </span>
-                      <h3>{handleExtractName(Item.path)}</h3>
-                    </div>
-                    <div className="notebook-buttons">
-                      <button onClick={() => onClick(Item.path, docTrack)}>
-                        {buttonText}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </li>
-              ))}
-          </ul>
+      <div className={`notebooks-list empty ${className}`}>
+        <div className="empty">
+          <FontAwesomeIcon icon={faBookOpen} />
+          <h2>No notebooks to display.</h2>
         </div>
-    )
-};
+      </div>
+    );
+  }
 
+  return (
+    <div className={`notebooks-list ${className}`}>
+      <ul>
+        {notebooks.map(Item => (
+          <li>
+            <div className="notebook">
+              <div>
+                <div className="notebook-header">
+                  <span>
+                    Last modified: {handleFormatUpdated(Item.last_modified)}
+                  </span>
+                  <h3>{handleExtractName(Item.path)}</h3>
+                </div>
+                <div className="notebook-buttons">
+                  <button onClick={() => onClick(Item.path, docTrack)}>
+                    {buttonText}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
 
 // -----------------------------------------------------------------------------
 // Component Styles
@@ -230,5 +233,4 @@ const StyledNotebooksList = styled(NotebooksList)`
   }
 `;
 
-
-export default StyledNotebooksList
+export default StyledNotebooksList;

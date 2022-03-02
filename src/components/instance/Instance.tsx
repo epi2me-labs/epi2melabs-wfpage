@@ -118,7 +118,10 @@ const InstanceComponent = ({
   // Handle opening files
   // ------------------------------------
   const handleOpenOutput = (path: string) => {
-    docTrack.open(path);
+    const report: any = docTrack.open(path);
+    if (report) {
+      report.trusted = true;
+    }
   };
 
   const handleOpenFolder = async (instanceData: Instance) => {
@@ -237,8 +240,18 @@ const InstanceComponent = ({
               Workflow: {instanceData.workflow}
             </h2>
             {isRunning ? (
-              <button onClick={() => handleInstanceDelete(false)}>
+              <button
+                className="instance-stop-button"
+                onClick={() => handleInstanceDelete(false)}
+              >
                 Stop Instance
+              </button>
+            ) : (
+              ''
+            )}
+            {report ? (
+              <button onClick={() => handleOpenOutput(report.path)}>
+                Open report
               </button>
             ) : (
               ''
@@ -414,6 +427,7 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     align-items: center;
   }
 
+  .instance-header-top button,
   .instance-section-header-controls button {
     cursor: pointer;
     padding: 10px 15px;
@@ -431,6 +445,7 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     background-color: rgb(239, 239, 239);
   }
 
+  .instance-header-top button:hover,
   .instance-section-header-controls button:hover {
     color: #005c75;
   }
@@ -446,7 +461,7 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     justify-content: space-between;
   }
 
-  .instance-header-top button {
+  .instance-header-top button.instance-stop-button {
     cursor: pointer;
     padding: 8px 15px;
     border: 1px solid #e34040;
@@ -462,7 +477,7 @@ const StyledInstanceComponent = styled(InstanceComponent)`
     background-color: transparent;
   }
 
-  .instance-header-top button:hover {
+  .instance-header-top button.instance-stop-button:hover {
     cursor: pointer;
     background-color: #e34040;
     color: white;
