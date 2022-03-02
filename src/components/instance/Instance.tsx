@@ -118,7 +118,10 @@ const InstanceComponent = ({
   // Handle opening files
   // ------------------------------------
   const handleOpenOutput = (path: string) => {
-    docTrack.open(path);
+    const report: any = docTrack.open(path);
+    if (report) {
+      report.trusted = true;
+    }
   };
 
   const handleOpenFolder = async (instanceData: Instance) => {
