@@ -33,6 +33,9 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   const [workflowActiveSections, setWorkflowActiveSections] = useState<
     ParameterSection[]
   >([]);
+  const [instanceNameError, setInstanceNameError] = useState<string | null>(
+    null
+  );
   const [instanceCreateError, setInstanceCreateError] = useState<string | null>(
     null
   );
@@ -167,12 +170,23 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   // ------------------------------------
   // Handle instance naming
   // ------------------------------------
+  const namePattern = new RegExp('^[-0-9A-Za-z_ ]+$');
   const handleInstanceRename = (name: string) => {
-    if (name === '' || name.length > 50 || name.length < 1) {
+    if (name === '') {
       setInstanceName(null);
+      setInstanceNameError('An instance name cannot be empty');
+      return;
+    }
+    if (!namePattern.test(name)) {
+      setInstanceName(null);
+      setInstanceNameError(
+        'An instance name can only contain dashes, ' +
+          'underscores, spaces, letters and numbers'
+      );
       return;
     }
     setInstanceName(name);
+    setInstanceNameError(null);
   };
 
   // ------------------------------------
@@ -231,6 +245,13 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
               onChange={e => handleInstanceRename(e.target.value)}
               maxLength={50}
             />
+            {instanceNameError ? (
+              <div className="error">
+                <p>Error: {instanceNameError}</p>
+              </div>
+            ) : (
+              ''
+            )}
           </div>
         </div>
 
@@ -353,7 +374,6 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
 
   .workflow-name .workflow-section-contents {
     border-radius: 4px;
-    background-color: #f6f6f6;
   }
 
   .workflow-name input {
@@ -387,6 +407,12 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
 
   .workflow-name.invalid input::placeholder {
     color: #e34040;
+  }
+
+  .workflow-name .error p {
+    padding: 15px 0 0 0;
+    color: #e34040;
+    font-size: 13px;
   }
 
   .workflow-launch-control .workflow-section-contents {
