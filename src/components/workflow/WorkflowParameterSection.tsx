@@ -79,16 +79,18 @@ const ParameterSectionComponent = ({
           </div>
         </button>
         <ul className={`parameter-section-items ${isOpen ? 'open' : 'closed'}`}>
-          {Object.entries(properties).map(([key, value]) => (
-            <li className="parameter">
-              <StyledParameterComponent
-                id={key}
-                schema={value}
-                error={errors[key] || []}
-                onChange={onChange}
-              />
-            </li>
-          ))}
+          {Object.entries(properties)
+            .sort(([, a_prop], [, b_prop]) => a_prop.order - b_prop.order)
+            .map(([key, value]) => (
+              <li className="parameter">
+                <StyledParameterComponent
+                  id={key}
+                  schema={value}
+                  error={errors[key] || []}
+                  onChange={onChange}
+                />
+              </li>
+            ))}
         </ul>
       </div>
     </div>
