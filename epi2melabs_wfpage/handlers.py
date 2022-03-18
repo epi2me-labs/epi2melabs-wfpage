@@ -34,9 +34,12 @@ class Cwd(LauncherAPIHandler):
     @tornado.web.authenticated
     def get(self) -> None:
         """Get current working dir"""
+        base_dir = self.launcher.base_dir
+        if self.launcher.platform in ['win32']:
+            base_dir = self.launcher._get_wsl_path(base_dir)
         self.finish(json.dumps({
             'curr_dir': os.getcwd(),
-            'base_dir': self.launcher.base_dir}
+            'base_dir': base_dir}
         ))
 
 
