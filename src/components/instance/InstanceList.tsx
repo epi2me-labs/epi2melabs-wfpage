@@ -4,8 +4,8 @@ import { requestAPI } from '../../handler';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { Instance } from './types';
+import StyledEmptyPanel from '../common/EmptyPanel';
 import { faHistory } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 // -----------------------------------------------------------------------------
 // Component
@@ -19,9 +19,6 @@ const InstanceList = ({
   className,
   onlyTracked
 }: IInstanceList): JSX.Element => {
-  // ------------------------------------
-  // Set up state
-  // ------------------------------------
   const [instances, setInstances] = useState<Instance[]>([]);
   const [trackedInstances, setTrackedInstances] = useState<Instance[]>([]);
 
@@ -71,6 +68,13 @@ const InstanceList = ({
   // ------------------------------------
   // Handle displaying instances
   // ------------------------------------
+  const formatDatetime = (datetime: string) => {
+    const elements = datetime.split('-');
+    const date = elements.slice(0, -2).join('/');
+    const time = elements.slice(-2).join(':');
+    return `${date} at ${time}`;
+  };
+
   const sortInstances = (a: Instance, b: Instance) => {
     if (a.created_at < b.created_at) {
       return 1;
@@ -87,14 +91,10 @@ const InstanceList = ({
   if (sortedVisibleInstances.length === 0) {
     return (
       <div className={`instance-list ${className}`}>
-        <div className="empty">
-          <div>
-            <h2>
-              <FontAwesomeIcon icon={faHistory} />
-              No workflows instances yet...
-            </h2>
-          </div>
-        </div>
+        <StyledEmptyPanel
+          body="There is no workflow history to display"
+          icon={faHistory}
+        />
       </div>
     );
   }
@@ -105,28 +105,24 @@ const InstanceList = ({
         {sortedVisibleInstances.map((Instance: Instance) => (
           <li>
             <div className="instance">
-              <div>
-                <div className="instance-header">
-                  <h2>{Instance.name}</h2>
-                  <span>
-                    {Instance.workflow} | Created: {Instance.created_at}
-                  </span>
-                </div>
-
-                <div className="instance-bar">
-                  <div className="instance-status">
-                    <StyledStatusIndicator status={Instance.status} />
-                    <p>{Instance.status}</p>
+              <Link className="instance-link" to={`/instances/${Instance.id}`}>
+                <div className="instance-details">
+                  <div className="instance-name">
+                    <p className="preheader">ID: {Instance.id}</p>
+                    <h3 className="large">{Instance.name}</h3>
                   </div>
-
-                  <Link
-                    className="instance-link"
-                    to={`/instances/${Instance.id}`}
-                  >
-                    <div>View Instance</div>
-                  </Link>
+                  <div className="instance-created">
+                    <p className="preheader">Created date</p>
+                    <h4>{formatDatetime(Instance.created_at)}</h4>
+                  </div>
+                  <div className="instance-status-indicator">
+                    <div className="instance-status">
+                      <StyledStatusIndicator status={Instance.status} />
+                      <p className="preheader">{Instance.status}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </Link>
             </div>
           </li>
         ))}
@@ -139,29 +135,11 @@ const InstanceList = ({
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledInstanceList = styled(InstanceList)`
-  max-width: 1200px;
-  margin: 50px auto 0 auto;
-
-  .empty {
-    width: 100%;
-    height: 250px;
-    display: flex;
-    text-align: center;
-    align-items: center;
-    justify-content: center;
-    background-color: white;
-    box-shadow: 0 6px 15px rgb(36 37 38 / 8%);
-    border-radius: 4px;
-    transition: box-shadow 0.25s ease, transform 0.25s ease;
-  }
-
-  .empty p {
-    padding-bottom: 10px;
-  }
-
-  .empty svg {
-    padding-right: 15px;
-    color: lightgray;
+  && {
+    width: calc(1024px + 30px);
+    padding: 0 15px 15px 15px;
+    margin: 0 auto;
+    box-sizing: border-box;
   }
 
   > ul {
@@ -172,8 +150,8 @@ const StyledInstanceList = styled(InstanceList)`
     grid-row-gap: 20px;
     list-style: none;
   }
+
   .instance {
-    padding: 15px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -182,63 +160,34 @@ const StyledInstanceList = styled(InstanceList)`
     border-radius: 4px;
     transition: box-shadow 0.25s ease, transform 0.25s ease;
   }
-  h3 {
-    font-size: 24px;
+
+  .instance-details {
+    padding: 25px 25px 25px 25px;
   }
-  .instance span {
-    color: #333;
+
+  .instance-details p {
+    padding: 0 0 5px 0;
+    color: #ccc;
   }
-  .instance-header h2 {
-    padding: 5px 0;
-  }
-  .instance-header span {
-    color: #a0a0a0;
-    text-transform: uppercase;
-    font-size: 11px;
-    line-height: 1em;
-    letter-spacing: 0.05em;
-  }
-  .instance-header {
+
+  .instance-name,
+  .instance-created {
+    padding: 0 0 10px 0;
+    margin: 0 0 15px 0;
+    text-align: left;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    flex-direction: column-reverse;
-    padding-bottom: 15px;
+    border-bottom: 1px solid #f2f2f2;
   }
-  .instance-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
+
   .instance-status {
     display: flex;
-    text-transform: uppercase;
-    font-size: 11px;
-    font-weight: bold;
-    line-height: 1em;
-    letter-spacing: 0.05em;
     align-items: center;
   }
+
   .instance-status p {
-    padding-left: 15px;
-  }
-  .instance-link {
-    color: #005c75;
-  }
-  .instance-link div {
-    padding: 15px 25px;
-    border: 1px solid #005c75;
-    color: #005c75;
-    text-transform: uppercase;
-    font-size: 11px;
-    border-radius: 4px;
-    font-weight: bold;
-    line-height: 1em;
-    letter-spacing: 0.05em;
-    transition: 0.2s ease-in-out all;
-  }
-  .instance-link div:hover {
-    background-color: #005c75;
-    color: white;
+    padding: 0 0 0 15px;
   }
 `;
 

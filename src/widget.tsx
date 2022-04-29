@@ -4,10 +4,10 @@ import { ReactWidget } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import StyledInstance from './components/instance/Instance';
 import StyledWorkflow from './components/workflow/Workflow';
-import StyledNotebooksPanel from './components/NotebooksPanel';
-import StyledWorkflowsPanel from './components/WorkflowsPanel';
-import StyledHeader from './components/Header';
-import StyledFooter from './components/Footer';
+import StyledNotebooksPanel from './components/notebook/NotebooksIndex';
+import StyledWorkflowsPanel from './components/workflow/WorkflowsIndex';
+import StyledHeader from './components/common/Header';
+import StyledFooter from './components/common/Footer';
 import styled from 'styled-components';
 
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
@@ -62,20 +62,7 @@ export class Launcher extends ReactWidget {
                     />
                   }
                 />
-                <Route
-                  path="/"
-                  element={
-                    <StyledNotebooksPanel
-                      docTrack={this.docTrack}
-                      templateDir={
-                        this.settings.get('template_dir').composite as string
-                      }
-                      workDir={
-                        this.settings.get('working_dir').composite as string
-                      }
-                    />
-                  }
-                />
+                <Route path="/" element={<StyledWorkflowsPanel />} />
               </Routes>
             </div>
             <StyledFooter />

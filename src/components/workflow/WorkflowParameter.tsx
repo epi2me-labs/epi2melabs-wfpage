@@ -1,5 +1,5 @@
 import React from 'react';
-import { Parameter } from './schema';
+import { Parameter } from './types';
 import { getInputComponent } from './inputs';
 import styled from 'styled-components';
 
@@ -30,8 +30,7 @@ const ParameterComponent = ({
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledParameterComponent = styled(ParameterComponent)`
-  padding: 25px 0;
-  border-top: 1px solid #e5e5e5;
+  padding: 25px 15px;
 `;
 
 export default StyledParameterComponent;

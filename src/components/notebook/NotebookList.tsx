@@ -3,7 +3,8 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 import { Contents } from '@jupyterlab/services';
 import styled from 'styled-components';
 import moment from 'moment';
-import { faBookOpen } from '@fortawesome/free-solid-svg-icons';
+import StyledEmptyPanel from '../common/EmptyPanel';
+import { faBookOpen, faBook } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const IPYNB = '.ipynb';
@@ -105,11 +106,11 @@ const NotebooksList = ({
 
   if (notebooks.length === 0) {
     return (
-      <div className={`notebooks-list empty ${className}`}>
-        <div className="empty">
-          <FontAwesomeIcon icon={faBookOpen} />
-          <h2>No notebooks to display.</h2>
-        </div>
+      <div className={`notebooks-list ${className}`}>
+        <StyledEmptyPanel
+          body="There are no notebooks to display"
+          icon={faBookOpen}
+        />
       </div>
     );
   }
@@ -120,19 +121,24 @@ const NotebooksList = ({
         {notebooks.map(Item => (
           <li>
             <div className="notebook">
-              <div>
+              <button
+                className="notebook-button"
+                onClick={() => onClick(Item.path, docTrack)}
+              >
                 <div className="notebook-header">
-                  <span>
-                    Last modified: {handleFormatUpdated(Item.last_modified)}
-                  </span>
-                  <h3>{handleExtractName(Item.path)}</h3>
+                  <FontAwesomeIcon icon={faBook} />
                 </div>
-                <div className="notebook-buttons">
-                  <button onClick={() => onClick(Item.path, docTrack)}>
-                    {buttonText}
-                  </button>
+                <div className="notebook-details">
+                  <div className="notebook-name">
+                    <p className="preheader">Notebook name</p>
+                    <h3 className="large">{handleExtractName(Item.path)}</h3>
+                  </div>
+                  <div className="notebook-modified">
+                    <p className="preheader">Last modified</p>
+                    <h4>{handleFormatUpdated(Item.last_modified)}</h4>
+                  </div>
                 </div>
-              </div>
+              </button>
             </div>
           </li>
         ))}
@@ -145,91 +151,77 @@ const NotebooksList = ({
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledNotebooksList = styled(NotebooksList)`
-  max-width: 1200px;
-  margin: 50px auto 0 auto;
+  && {
+    max-width: calc(1024px + 30px);
+    padding: 0 15px 15px 15px;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
 
   > ul {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     grid-template-rows: minmax(min-content, max-content);
     grid-column-gap: 20px;
     grid-row-gap: 20px;
     list-style: none;
   }
 
-  .empty {
+  .notebook {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: white;
+    box-shadow: 0 6px 15px rgb(36 37 38 / 8%);
+    border-radius: 4px;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+
+  .notebook-button {
+    outline: none;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+  }
+
+  .notebook-header {
+    box-sizing: border-box;
     width: 100%;
-    height: 250px;
+    padding: 25px 25px 0;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background-color: white;
-    box-shadow: 0 6px 15px rgb(36 37 38 / 8%);
+    justify-content: flex-start;
     border-radius: 4px;
-    transition: box-shadow 0.25s ease, transform 0.25s ease;
-    background-color: #ffffff;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
 
-  .empty svg {
-    padding-right: 15px;
-    color: lightgray;
-  }
-
-  .notebook {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background-color: white;
-    box-shadow: 0 6px 15px rgb(36 37 38 / 8%);
-    border-radius: 4px;
-    transition: box-shadow 0.25s ease, transform 0.25s ease;
-  }
-  .notebook span {
-    color: #333;
-  }
-  .notebook-header span {
-    letter-spacing: 0.05em;
-    color: #a0a0a0;
-    text-transform: uppercase;
-    font-size: 11px;
-    line-height: 1em;
-    padding-bottom: 5px;
-  }
-  .notebook-header {
-    display: flex;
-    justify-content: space-between;
-    flex-direction: column;
-  }
-  .notebook-header h3 {
-    font-size: 18px;
-    padding: 10px 0 15px 0;
-  }
-  .notebook-buttons {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-  .notebook-link {
-    color: #1d9655;
-  }
-  .notebook-buttons button {
-    padding: 15px 25px;
-    border: 1px solid #1d9655;
-    color: #1d9655;
-    text-transform: uppercase;
-    font-size: 11px;
-    border-radius: 4px;
-    font-weight: bold;
-    line-height: 1em;
-    letter-spacing: 0.05em;
+  .notebook-header svg {
+    padding: 15px 16px;
+    border-radius: 50px;
     background-color: transparent;
-    transition: 0.2s ease-in-out all;
+    border: 2px solid #e65100;
+    color: #e65100;
   }
-  .notebook-buttons button:hover {
-    background-color: #1d9655;
-    color: white;
-    cursor: pointer;
+
+  .notebook-details {
+    padding: 25px 25px 25px 25px;
+    text-align: left;
+  }
+
+  .notebook-details p {
+    padding: 0 0 5px 0;
+    color: #ccc;
+  }
+
+  .notebook-name {
+    padding: 0 0 10px 0;
+    margin: 0 0 15px 0;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-bottom: 1px solid #f2f2f2;
   }
 `;
 

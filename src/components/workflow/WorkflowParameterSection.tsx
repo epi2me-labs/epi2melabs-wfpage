@@ -11,7 +11,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { IconName, IconPrefix } from '@fortawesome/fontawesome-svg-core';
 import StyledParameterComponent from './WorkflowParameter';
-import { ParameterSection } from './schema';
+import { ParameterSection } from './types';
 import styled from 'styled-components';
 
 // -----------------------------------------------------------------------------
@@ -21,6 +21,7 @@ interface IParameterSectionComponent extends ParameterSection {
   errors: { [key: string]: string[] };
   onChange: CallableFunction;
   className?: string;
+  initOpen: boolean;
 }
 
 const ParameterSectionComponent = ({
@@ -28,13 +29,14 @@ const ParameterSectionComponent = ({
   fa_icon,
   properties,
   errors,
+  initOpen,
   onChange,
   className
 }: IParameterSectionComponent): JSX.Element => {
   // ------------------------------------
   // Set up state
   // ------------------------------------
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(initOpen);
   const isValid = Object.keys(errors).length === 0 ? true : false;
 
   // ------------------------------------
@@ -65,24 +67,23 @@ const ParameterSectionComponent = ({
             {title}
           </h3>
           <div className="parameter-section-toggle-controls">
+            <FontAwesomeIcon icon={isOpen ? faCaretUp : faCaretDown} />
             {isValid ? (
               <div className="parameter-section-toggle-errors valid">
                 <FontAwesomeIcon icon={faCheckCircle} />
               </div>
             ) : (
               <div className="parameter-section-toggle-errors invalid">
-                <p>{Object.keys(errors).length}</p>
                 <FontAwesomeIcon icon={faTimesCircle} />
               </div>
             )}
-            <FontAwesomeIcon icon={isOpen ? faCaretUp : faCaretDown} />
           </div>
         </button>
         <ul className={`parameter-section-items ${isOpen ? 'open' : 'closed'}`}>
           {Object.entries(properties)
             .sort(([, a_prop], [, b_prop]) => a_prop.order - b_prop.order)
             .map(([key, value]) => (
-              <li className="parameter">
+              <li>
                 <StyledParameterComponent
                   id={key}
                   schema={value}
@@ -101,46 +102,49 @@ const ParameterSectionComponent = ({
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledParameterSectionComponent = styled(ParameterSectionComponent)`
+  && {
+    margin: 25px 0;
+    box-shadow: 0 6px 15px rgb(36 37 38 / 8%);
+    background-color: white;
+    border-radius: 4px;
+  }
+
   .parameter-section-toggle {
     box-sizing: border-box;
     width: 100%;
     display: flex;
-    padding: 15px;
+    padding: 25px;
     justify-content: space-between;
     align-items: center;
     border: none;
     outline: none;
-    background: transparent;
+    background-color: transparent;
     cursor: pointer;
+  }
+
+  .parameter-section-toggle:hover {
+    background-color: #f3f3f3;
   }
 
   .parameter-section-toggle h3 svg {
     margin-right: 15px;
   }
 
-  .parameter-section-toggle h3 {
-    font-size: 16px;
-    font-weight: normal;
-    color: #e34040;
-  }
-
-  .parameter-section-container.valid .parameter-section-toggle h3 {
-    color: black;
-  }
-
   .parameter-section-toggle-controls {
     display: flex;
   }
 
+  .parameter-section-toggle-controls svg {
+    width: 18px;
+    height: 18px;
+  }
+
   .parameter-section-toggle-errors {
-    margin-right: 15px;
     display: flex;
     align-items: center;
   }
 
   .parameter-section-toggle-errors svg {
-    width: 15px;
-    height: 15px;
     margin-left: 5px;
   }
 
@@ -149,7 +153,8 @@ const StyledParameterSectionComponent = styled(ParameterSectionComponent)`
   }
 
   .parameter-section-toggle-errors.invalid svg {
-    color: #e34040;
+    // color: #e34040;
+    color: #e11515;
   }
 
   .parameter-section-toggle-errors.invalid p {
@@ -159,7 +164,6 @@ const StyledParameterSectionComponent = styled(ParameterSectionComponent)`
 
   .parameter-section-items {
     display: block;
-    padding: 15px 15px 0 15px;
     transition: 0.2s ease-in-out all;
   }
 
@@ -168,8 +172,18 @@ const StyledParameterSectionComponent = styled(ParameterSectionComponent)`
   }
 
   .parameter-section-items.open {
-    padding-top: 15px;
     display: block;
+    background-color: #fff;
+  }
+
+  .parameter-section-items > li {
+    padding: 25px 0;
+    width: calc(100% - 50px);
+    margin: 0 auto;
+    box-sizing: border-box;
+    background-color: #fff;
+    border-top: 1px solid #f2f2f2;
+    color: #212529;
   }
 `;
 
