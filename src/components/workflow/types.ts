@@ -15,6 +15,10 @@ export type Parameter = {
   [key: string]: any;
 };
 
+export type WorkflowDocs = {
+  [key: string]: string;
+};
+
 export type WorkflowDefaults = {
   [key: string]: string;
 };
@@ -30,4 +34,5 @@ export type Workflow = {
   desc: string;
   schema: WorkflowSchema;
   defaults: WorkflowDefaults;
+  docs: WorkflowDocs;
 };

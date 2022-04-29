@@ -229,7 +229,7 @@ const FileInput = ({
             <div className="file-browser-path file-browser-close">
               <button onClick={() => setBrowserOpen(false)}>
                 <FontAwesomeIcon icon={faTimes} />
-                Close
+                {selectedPath.length ? 'Close' : 'Select'}
               </button>
             </div>
             <ul>
@@ -291,27 +291,23 @@ const FileInput = ({
 const StyledFileInput = styled(FileInput)`
   h4 {
     padding: 0 0 5px 0;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: black;
   }
 
   p {
     padding: 0 0 10px 0;
-    font-size: 13px;
-    color: #333;
   }
 
   .file-input-container {
-    max-width: 700px;
     display: flex;
-    border: 1px solid transparent;
+    color: #212529;
     border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    background-color: #f8f9fa;
   }
 
   .file-input-container:hover {
-    border: 1px solid #005c75;
+    border-color: #005c75;
+    box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%);
   }
 
   label {
@@ -330,12 +326,12 @@ const StyledFileInput = styled(FileInput)`
     margin: 0;
     padding: 15px 25px;
 
-    font-size: 12px;
-    font-family: monospace;
-    letter-spacing: 0.05em;
-    color: black;
+    font-size: 14px;
+    line-height: 1em;
+
+    color: #212529;
     border: 0;
-    background-color: #f3f3f3;
+    background-color: transparent;
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
     outline: none;
@@ -348,7 +344,8 @@ const StyledFileInput = styled(FileInput)`
     border-radius: 0;
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
-    border-left: 1px solid #ccc;
+    background-color: rgba(0, 0, 0, 0.125);
+    color: #333;
     cursor: pointer;
   }
 

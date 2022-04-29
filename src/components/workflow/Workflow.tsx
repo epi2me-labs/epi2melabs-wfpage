@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { requestAPI } from '../../handler';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GenericStringObject, GenericObject } from '../../types';
+import { GenericObject } from '../../types';
+import StyledTabbedHeader from '../common/TabbedHeader';
 import { validateSchema, parseValidationErrors } from '../../schema';
-import StyledWorkflowParameterSection from './WorkflowParameterSection';
+import StyledWorkflowLaunchPanel from './WorkflowLaunchPanel';
+import StyledWorkflowDocsPanel from './WorkflowDocsPanel';
 import styled from 'styled-components';
 import {
   Workflow,
   WorkflowDefaults,
   ParameterSection,
   Parameter
-} from './schema';
+} from './types';
 
 // -----------------------------------------------------------------------------
 // Component
@@ -39,7 +41,9 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   const [instanceCreateError, setInstanceCreateError] = useState<string | null>(
     null
   );
-  const [instanceName, setInstanceName] = useState<string | null>();
+  const [instanceName, setInstanceName] = useState<string | null>(null);
+  const [animationClass, setAnimationClass] = useState('animated');
+  const [selectedTab, setSelectedTab] = useState(0);
 
   // ------------------------------------
   // Handle component initialisation
@@ -130,21 +134,6 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   // ------------------------------------
   // Handle parameter validation
   // ------------------------------------
-  const filterErrorsByParameters = (
-    parameters: { [key: string]: Parameter },
-    errors: GenericStringObject
-  ) =>
-    Object.keys(parameters).reduce(
-      (obj, key) =>
-        Object.prototype.hasOwnProperty.call(errors, key)
-          ? {
-              ...obj,
-              [key]: errors[key]
-            }
-          : obj,
-      {}
-    );
-
   const handleInputChange = (id: string, format: string, value: any) => {
     if (value === '') {
       const { [id]: _, ...rest } = workflowParams;
@@ -216,89 +205,54 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
     navigate(`/instances/${instance.id}`);
   };
 
+  // ------------------------------------
+  // Tabbed interface
+  // ------------------------------------
+  const tabs = [
+    {
+      body: 'Launch workflow',
+      onClick: () => setSelectedTab(0),
+      element: (
+        <div
+          className={`tab-contents ${animationClass}`}
+          onAnimationEnd={() => setAnimationClass('')}
+        >
+          <StyledWorkflowLaunchPanel
+            parameterSections={workflowActiveSections}
+            parameterErrors={workflowParamsErrors}
+            parametersValid={workflowParamsValid}
+            onChangeParameter={handleInputChange}
+            instanceName={instanceName}
+            instanceNameError={instanceNameError}
+            instanceCreateError={instanceCreateError}
+            onChangeInstanceName={handleInstanceRename}
+            onClickLaunch={launchWorkflow}
+          />
+        </div>
+      )
+    },
+    {
+      body: 'Documentation',
+      onClick: () => setSelectedTab(1),
+      element: (
+        <div className="tab-contents animated">
+          <StyledWorkflowDocsPanel docs={workflowData?.docs} />
+        </div>
+      )
+    }
+  ];
+
   return workflowData ? (
     <div className={`workflow ${className}`}>
       <div className="workflow-container">
-        {/* Workflow header */}
-        <div className="workflow-section workflow-header">
-          <h1>Workflow: {params.name}</h1>
-          <div className="workflow-description">
-            <div>{workflowData.desc}</div>
-          </div>
-          <div className="workflow-details">
-            <div>Version {workflowData.defaults.wfversion}</div>
-          </div>
-        </div>
+        <StyledTabbedHeader
+          title={workflowData.name}
+          body={<p className="large">{workflowData.desc}</p>}
+          active={selectedTab}
+          tabs={tabs}
+        />
 
-        {/* Instance name */}
-        <div
-          className={`workflow-section workflow-name ${
-            instanceName ? '' : 'invalid'
-          }`}
-        >
-          <h2>1. Name workflow run</h2>
-          <div className="workflow-section-contents">
-            <input
-              id="worflow-name-input"
-              type="text"
-              placeholder={'E.g. my_experiment (up to 50 characters long).'}
-              onChange={e => handleInstanceRename(e.target.value)}
-              maxLength={50}
-            />
-            {instanceNameError ? (
-              <div className="error">
-                <p>Error: {instanceNameError}</p>
-              </div>
-            ) : (
-              ''
-            )}
-          </div>
-        </div>
-
-        {/* Workflow params */}
-        <div className="workflow-section workflow-parameter-sections">
-          <h2>2. Choose parameters</h2>
-          <div className="workflow-section-contents">
-            <ul>
-              {workflowActiveSections.map(Section => (
-                <li>
-                  <StyledWorkflowParameterSection
-                    title={Section.title}
-                    description={Section.description}
-                    fa_icon={Section.fa_icon}
-                    properties={Section.properties}
-                    errors={filterErrorsByParameters(
-                      Section.properties,
-                      workflowParamsErrors
-                    )}
-                    onChange={handleInputChange}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* Workflow launch */}
-        <div className="workflow-section workflow-launch-control">
-          <h2>3. Launch workflow</h2>
-          <div className="workflow-section-contents">
-            <div
-              className={`launch-control ${
-                workflowParamsValid && instanceName ? 'active' : 'inactive'
-              }`}
-            >
-              <button onClick={() => launchWorkflow()}>Run command</button>
-              {instanceCreateError ? (
-                <div className="error">
-                  <p>Error: {instanceCreateError}</p>
-                </div>
-              ) : (
-                ''
-              )}
-            </div>
-          </div>
-        </div>
+        {tabs[selectedTab].element}
       </div>
     </div>
   ) : (
@@ -313,142 +267,34 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
   background-color: #f6f6f6;
 
   .workflow-container {
-    padding: 0 0 100px 0 !important;
-  }
-
-  .workflow-section {
-    width: 100%;
-    padding: 15px;
-    max-width: 1200px;
-    margin: 0 auto 25px auto;
-    background-color: white;
-    box-shadow: 0 6px 15px rgb(36 37 38 / 8%);
-    border-radius: 4px;
-    transition: box-shadow 0.25s ease, transform 0.25s ease;
-    background-color: #ffffff;
-  }
-
-  .workflow-section > h2 {
-    padding-bottom: 15px;
-  }
-
-  .workflow-header {
-    width: 100%;
-    margin: 0 auto 50px auto;
-    max-width: 100%;
-    box-shadow: none;
-    padding: 75px 0;
-    text-align: center;
-  }
-
-  .workflow-description div {
-    letter-spacing: 0em;
-    font-size: 14px;
-    text-transform: none;
-    padding-bottom: 15px;
-    max-width: 700px;
-    line-height: 1.4em;
-    text-align: center;
-    margin: 0 auto;
-    color: #a0a0a0;
-  }
-
-  .workflow-details div {
-    /* color: #333;
-    font-weight: normal;
-    font-size: 14px; */
-    padding-bottom: 5px;
-    color: #a0a0a0;
-    text-transform: uppercase;
-    font-size: 11px;
-    line-height: 1em;
-    letter-spacing: 0.05em;
-  }
-
-  .workflow-parameter-sections .workflow-section-contents > ul > li {
-    background-color: #fafafa;
-    padding: 15px;
-    margin: 0 0 15px 0;
-    border-radius: 4px;
-  }
-
-  .workflow-name .workflow-section-contents {
-    border-radius: 4px;
-  }
-
-  .workflow-name input {
-    margin: 0;
     box-sizing: border-box;
+    padding: 0 0 50px 0 !important;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      transform: translate3d(0, 40px, 0);
+    }
+
+    to {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+    }
+  }
+
+  .tab-contents {
     width: 100%;
-    padding: 15px 25px;
-
-    font-size: 12px;
-    font-family: monospace;
-    letter-spacing: 0.05em;
-    line-height: 1em;
-
-    color: black;
-    background-color: #f3f3f3;
-    border: 0;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    outline: none;
-
-    transition: 0.2s ease-in-out all;
+    padding: 0 15px;
+    box-sizing: border-box;
+    max-width: calc(1024px + 30px);
+    margin: 0 auto 25px auto;
   }
 
-  .workflow-name input:hover {
-    border: 1px solid #005c75;
-  }
-
-  .workflow-name.invalid input {
-    color: #e34040;
-  }
-
-  .workflow-name.invalid input::placeholder {
-    color: #e34040;
-  }
-
-  .workflow-name .error p {
-    padding: 15px 0 0 0;
-    color: #e34040;
-    font-size: 13px;
-  }
-
-  .workflow-launch-control .workflow-section-contents {
-    padding: 15px;
-    border-radius: 4px;
-    background-color: #f6f6f6;
-  }
-
-  .workflow-launch-control button {
-    padding: 15px 25px;
-    margin: 0 15px 0 0;
-    border: 1px solid lightgray;
-    color: lightgray;
-    text-transform: uppercase;
-    font-size: 11px;
-    border-radius: 4px;
-    font-weight: bold;
-    line-height: 1em;
-    letter-spacing: 0.05em;
-    transition: 0.2s ease-in-out all;
-    outline: none;
-    background-color: transparent;
-  }
-
-  .workflow-launch-control .active button {
-    border: 1px solid #1d9655;
-    color: #1d9655;
-  }
-  .workflow-launch-control .active button:hover {
-    cursor: pointer;
-    background-color: #1d9655;
-    color: white;
-  }
-  .workflow-launch-control .error p {
-    padding: 15px 0 0 0;
-    color: #e34040;
+  .animated {
+    opacity: 0;
+    animation-name: fadeInUp;
+    animation-duration: 1s;
+    animation-fill-mode: both;
   }
 `;
 

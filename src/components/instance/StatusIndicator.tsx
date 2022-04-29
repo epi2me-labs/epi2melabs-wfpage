@@ -8,6 +8,8 @@ const ENCOUNTERED_ERROR = 'ENCOUNTERED_ERROR';
 const COMPLETED_SUCCESSFULLY = 'COMPLETED_SUCCESSFULLY';
 const TERMINATED = 'TERMINATED';
 
+export const finished = [COMPLETED_SUCCESSFULLY, TERMINATED, ENCOUNTERED_ERROR];
+
 const statuses: GenericObject = {
   [UNKNOWN]: {
     name: 'UNKNOWN',
@@ -55,8 +57,8 @@ const StatusIndicator = ({
 // -----------------------------------------------------------------------------
 const StyledStatusIndicator = styled(StatusIndicator)`
   > div {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     padding: 0;
     border-radius: 100%;
     line-height: 18px;

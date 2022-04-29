@@ -1,5 +1,5 @@
 import React from 'react';
-import { WorkflowSchema } from './schema';
+import { WorkflowSchema } from './types';
 import StyledBooleanInput, { IBooleanProps } from '../inputs/BooleanInput';
 import StyledSelectInput, { ISelectProps } from '../inputs/SelectInput';
 import StyledTextInput, { ITextProps } from '../inputs/TextInput';
@@ -26,16 +26,6 @@ export const isBooleanInput = (schema: WorkflowSchema): boolean =>
 // -----------------------------------------------------------------------------
 // File input mapping
 // -----------------------------------------------------------------------------
-// export const mapSchemaToFileInput = (
-//   id: string,
-//   schema: WorkflowSchema
-// ): IFileProps => ({
-//   id: id,
-//   label: id,
-//   description: schema.description || schema.help_text,
-//   multiple: false
-// });
-
 export const isFileInput = (schema: WorkflowSchema): boolean =>
   schema.type === 'string' &&
   ['file-path', 'directory-path', 'path'].includes(schema.format)

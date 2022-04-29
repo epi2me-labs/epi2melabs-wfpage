@@ -52,14 +52,14 @@ const NumInput = ({
       />
     </label>
     {error.length ? (
-        <div className="error">
-          {error.map(Error => (
-            <p>Error: {Error}</p>
-          ))}
-        </div>
-      ) : (
-        ''
-      )}
+      <div className="error">
+        {error.map(Error => (
+          <p>Error: {Error}</p>
+        ))}
+      </div>
+    ) : (
+      ''
+    )}
   </div>
 );
 
@@ -69,16 +69,10 @@ const NumInput = ({
 const StyledNumInput = styled(NumInput)`
   h4 {
     padding: 0 0 5px 0;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: black;
   }
 
   p {
     padding: 0 0 10px 0;
-    font-size: 13px;
-    color: #333;
   }
 
   label {
@@ -89,15 +83,12 @@ const StyledNumInput = styled(NumInput)`
     margin: 0;
     padding: 15px 25px;
 
-    font-size: 12px;
-    font-family: monospace;
-    letter-spacing: 0.05em;
+    font-size: 14px;
     line-height: 1em;
 
-    color: black;
-    background-color: #f3f3f3;
-    border: 0;
-    border: 1px solid transparent;
+    color: #212529;
+    background-color: #f8f9fa;
+    border: 1px solid rgba(0, 0, 0, 0.125);
     border-radius: 4px;
     outline: none;
 
@@ -110,7 +101,8 @@ const StyledNumInput = styled(NumInput)`
   }
 
   input:hover {
-    border: 1px solid #005c75;
+    border-color: #005c75;
+    box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%);
   }
 
   input::-webkit-inner-spin-button {
