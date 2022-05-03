@@ -40,8 +40,8 @@ const WorkflowsPanel = ({ className }: IWorkflowsList): JSX.Element => {
         title="EPI2ME Labs Workflows"
         body={
           <p className="large">
-            EPI2ME Labs is developing a range of workflows covering a variety of
-            of everyday bioinformatics needs. These workflows are free and open
+            EPI2ME Labs is developing nextflow workflows covering a variety
+            everyday bioinformatics needs. These workflows are free and open to
             to be used by anyone.
           </p>
         }
