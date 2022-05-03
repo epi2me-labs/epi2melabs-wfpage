@@ -37,14 +37,14 @@ const NotebooksList = ({
   // ------------------------------------
   const [notebooks, setNotebooks] = useState<ITrackedNotebook[]>([]);
 
-  const handleUpdateSections = async () => {
+  const handleUpdateSections = async (path: string) => {
     setNotebooks(await getNotebooks(path, docTrack));
   };
 
   useEffect(() => {
-    handleUpdateSections();
+    handleUpdateSections(path);
     const slotHandleUpdateSections = (e: any) => {
-      handleUpdateSections();
+      handleUpdateSections(path);
     };
 
     const fileSignal = docTrack.services.contents.fileChanged;
@@ -52,7 +52,7 @@ const NotebooksList = ({
     return () => {
       fileSignal.disconnect(slotHandleUpdateSections);
     };
-  }, []);
+  }, [path]);
 
   // ------------------------------------
   // Notebook doctrack utilities
