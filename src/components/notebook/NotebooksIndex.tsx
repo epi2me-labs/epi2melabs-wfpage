@@ -38,13 +38,13 @@ const NotebooksPanel = ({
 
   const tabs = [
     {
-      body: 'Recently open',
+      body: 'Notebooks',
       onClick: () => setSelectedTab(0),
       element: (
         <div className="tab-contents">
           <StyledNotebooksList
-            path={workDir}
-            onClick={handleNotebookOpen}
+            path={templateDir}
+            onClick={handleNotebookClone}
             docTrack={docTrack}
             buttonText="Open notebook"
           />
@@ -52,13 +52,13 @@ const NotebooksPanel = ({
       )
     },
     {
-      body: 'Templates',
+      body: 'Notebook history',
       onClick: () => setSelectedTab(1),
       element: (
         <div className="tab-contents">
           <StyledNotebooksList
-            path={templateDir}
-            onClick={handleNotebookClone}
+            path={workDir}
+            onClick={handleNotebookOpen}
             docTrack={docTrack}
             buttonText="Open notebook"
           />
