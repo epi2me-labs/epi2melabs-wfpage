@@ -165,9 +165,11 @@ const InstanceOutputsPanel = ({
 // -----------------------------------------------------------------------------
 const StyledInstanceOutputsPanel = styled(InstanceOutputsPanel)`
   && {
+    box-sizing: border-box;
     border-radius: 4px;
+    max-width: 1024px;
     padding: 25px;
-    margin: 0 0 50px 0;
+    margin: 0 auto 50px auto;
     box-shadow: 0 6px 15px rgb(36 37 38 / 8%);
     background-color: white;
   }

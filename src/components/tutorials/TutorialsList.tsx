@@ -152,8 +152,8 @@ const TutorialsList = ({
 // -----------------------------------------------------------------------------
 const StyledTutorialsList = styled(TutorialsList)`
   && {
-    max-width: calc(1024px + 30px);
-    padding: 0 15px 15px 15px;
+    max-width: 1024px;
+    padding: 0 0 15px 0;
     margin: 0 auto;
     box-sizing: border-box;
   }

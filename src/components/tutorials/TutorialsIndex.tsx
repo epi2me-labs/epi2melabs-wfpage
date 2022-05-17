@@ -108,6 +108,7 @@ const StyledTutorialsPanel = styled(TutorialsPanel)`
   }
 
   .tab-contents {
+    padding: 0 25px;
     opacity: 0;
     animation-name: fadeInUp;
     animation-duration: 1s;

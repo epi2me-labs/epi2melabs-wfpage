@@ -124,6 +124,12 @@ const WorkflowLaunchPanel = ({
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledWorkflowLaunchPanel = styled(WorkflowLaunchPanel)`
+  && {
+    max-width: 1024px;
+    padding: 0 0 15px 0;
+    margin: 0 auto;
+  }
+
   //
   // Instance naming
   //

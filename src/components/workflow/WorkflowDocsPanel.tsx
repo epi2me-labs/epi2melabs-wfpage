@@ -39,6 +39,12 @@ const WorkflowDocsPanel = ({
 // Component Styles
 // -----------------------------------------------------------------------------
 const StyledWorkflowDocsPanel = styled(WorkflowDocsPanel)`
+  && {
+    max-width: 1024px;
+    padding: 0 0 15px 0;
+    margin: 0 auto;
+  }
+
   .docs-panel-contents {
     border-radius: 4px;
     padding: 25px;
