@@ -35,7 +35,7 @@ const Header = ({ className }: IHeader): JSX.Element => (
             <Link to="/workflows">Workflows</Link>
           </li>
           <li className="text-link">
-            <Link to="/notebooks">Notebooks</Link>
+            <Link to="/tutorials">Tutorials</Link>
           </li>
           <li>
             <Link to="/">
