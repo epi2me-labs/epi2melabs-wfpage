@@ -55,6 +55,8 @@ const setNativeValue = (element: any, value: any) => {
   }
 };
 
+const getNativeValue = (element: any) => element.current.value;
+
 const mapFormatToEndpoint = (format: string) => {
   let fmt;
   switch (format) {
@@ -216,7 +218,16 @@ const FileInput = ({
         </label>
         <button
           className="file-browser-toggle"
-          onClick={() => setBrowserOpen(!browserOpen)}
+          onClick={() => {
+            if (!browserOpen) {
+              setSelectedPath(getNativeValue(inputRef));
+              const parent = getParentDir(selectedPath);
+              setBrowserLocation(parent);
+              setBrowserOpen(true);
+              return;
+            }
+            setBrowserOpen(false);
+          }}
         >
           Browse
         </button>
