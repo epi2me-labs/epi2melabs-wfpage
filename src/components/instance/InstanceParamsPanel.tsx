@@ -105,6 +105,7 @@ const InstanceParamsPanel = ({
 // -----------------------------------------------------------------------------
 const StyledInstanceParamsPanel = styled(InstanceParamsPanel)`
   && {
+    box-sizing: border-box;
     border-radius: 4px;
     max-width: 1024px;
     padding: 25px;

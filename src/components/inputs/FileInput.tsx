@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFolder,
   faFile,
-  faTimes,
   faLevelUpAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { requestAPI } from '../../handler';
@@ -226,19 +225,15 @@ const FileInput = ({
       {browserOpen ? (
         <div className="file-browser">
           <div className="file-browser-contents">
-            <div className="file-browser-path file-browser-close">
-              <button onClick={() => setBrowserOpen(false)}>
-                <FontAwesomeIcon icon={faTimes} />
-                {selectedPath.length ? 'Close' : 'Select'}
-              </button>
-            </div>
             <ul>
               {browserLocation !== '/' ? (
                 <li className="file-browser-path file-browser-back">
                   <button
-                    onClick={() =>
-                      setBrowserLocation(getParentDir(browserLocation))
-                    }
+                    onClick={() => {
+                      const parent = getParentDir(browserLocation);
+                      setBrowserLocation(parent);
+                      setSelectedPath('');
+                    }}
                   >
                     <FontAwesomeIcon icon={faLevelUpAlt} />
                     Go Up
@@ -267,6 +262,11 @@ const FileInput = ({
                 </li>
               ))}
             </ul>
+            <div className="file-browser-close">
+              <button onClick={() => setBrowserOpen(false)}>
+                {selectedPath.length ? 'Select' : 'Close'}
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -376,7 +376,8 @@ const StyledFileInput = styled(FileInput)`
   }
 
   .file-browser-contents {
-    width: 900px;
+    width: calc(100% - 50px);
+    max-width: 900px;
     /* max-height: 500px; */
     border-radius: 4px;
     overflow-y: auto;
@@ -433,15 +434,22 @@ const StyledFileInput = styled(FileInput)`
   }
 
   .file-browser-close {
-    background-color: transparent;
+    padding: 15px;
+    display: flex;
+    justify-content: flex-end;
+    background-color: white;
   }
 
-  .file-browser-path.file-browser-close button {
-    display: flex;
-    justify-content: end;
-    border-radius: 0;
-    border-bottom: 2px solid #ccc;
-    color: #333;
+  .file-browser-close button {
+    padding: 10px 24px;
+    border-radius: 4px;
+    border: none;
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1em;
+    transition: 0.2s ease-in-out all;
+    background-color: #eee;
+    cursor: pointer;
   }
 
   .file-browser-path.file-browser-close:hover button {
