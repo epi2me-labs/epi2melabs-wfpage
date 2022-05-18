@@ -4,7 +4,7 @@ import { ReactWidget } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import StyledInstance from './components/instance/Instance';
 import StyledWorkflow from './components/workflow/Workflow';
-import StyledNotebooksPanel from './components/notebook/NotebooksIndex';
+import StyledNotebooksPanel from './components/tutorials/TutorialsIndex';
 import StyledWorkflowsPanel from './components/workflow/WorkflowsIndex';
 import StyledHeader from './components/common/Header';
 import StyledFooter from './components/common/Footer';
@@ -49,7 +49,7 @@ export class Launcher extends ReactWidget {
                   }
                 />
                 <Route
-                  path="/notebooks"
+                  path="/tutorials"
                   element={
                     <StyledNotebooksPanel
                       docTrack={this.docTrack}

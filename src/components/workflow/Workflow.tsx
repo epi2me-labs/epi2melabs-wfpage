@@ -30,8 +30,9 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   const [workflowData, setWorkflowData] = useState<Workflow | undefined>();
   const [workflowParams, setWorkflowParams] = useState<WorkflowDefaults>({});
   const [workflowParamsValid, setWorkflowParamsValid] = useState(false);
-  const [workflowParamsErrors, setWorkflowParamsErrors] =
-    useState<GenericObject>({});
+  const [workflowParamsErrors, setWorkflowParamsErrors] = useState<
+    GenericObject
+  >({});
   const [workflowActiveSections, setWorkflowActiveSections] = useState<
     ParameterSection[]
   >([]);
@@ -284,9 +285,8 @@ const StyledWorkflowComponent = styled(WorkflowComponent)`
 
   .tab-contents {
     width: 100%;
-    padding: 0 15px;
+    padding: 0 25px 0 25px;
     box-sizing: border-box;
-    max-width: calc(1024px + 30px);
     margin: 0 auto 25px auto;
   }
 

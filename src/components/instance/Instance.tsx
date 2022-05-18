@@ -199,9 +199,8 @@ const StyledInstanceComponent = styled(InstanceComponent)`
   .tab-contents {
     box-sizing: border-box;
     width: 100%;
-    max-width: calc(1024px + 30px);
-    padding: 0 15px;
-    margin: 0 auto 25px auto;
+    padding: 0 25px;
+    margin: 0 auto 0 auto;
     opacity: 0;
     animation-name: fadeInUp;
     animation-duration: 1s;

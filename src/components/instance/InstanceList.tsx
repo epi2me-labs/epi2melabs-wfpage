@@ -136,19 +136,25 @@ const InstanceList = ({
 // -----------------------------------------------------------------------------
 const StyledInstanceList = styled(InstanceList)`
   && {
-    width: calc(1024px + 30px);
-    padding: 0 15px 15px 15px;
+    max-width: 1024px;
+    padding: 0 0 15px 0;
     margin: 0 auto;
     box-sizing: border-box;
   }
 
   > ul {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-    grid-template-rows: minmax(min-content, max-content);
-    grid-column-gap: 20px;
     grid-row-gap: 20px;
+    grid-template-columns: 1fr;
     list-style: none;
+  }
+
+  @media only screen and (min-width: 600px) {
+    > ul {
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      grid-template-rows: minmax(min-content, max-content);
+      grid-column-gap: 20px;
+    }
   }
 
   .instance {

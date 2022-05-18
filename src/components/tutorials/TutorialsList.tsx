@@ -19,7 +19,7 @@ export interface ITrackedNotebook {
   onClick?: (e: string) => void;
 }
 
-const NotebooksList = ({
+const TutorialsList = ({
   path,
   onClick,
   docTrack,
@@ -63,11 +63,11 @@ const NotebooksList = ({
   ): Promise<Contents.IModel[]> => {
     return (
       await Promise.all<Contents.IModel>(
-        (
-          await docTrack.services.contents.get(path)
-        ).content.map((Item: Contents.IModel) => {
-          return Item.type === 'directory' ? null : Item;
-        })
+        (await docTrack.services.contents.get(path)).content.map(
+          (Item: Contents.IModel) => {
+            return Item.type === 'directory' ? null : Item;
+          }
+        )
       )
     ).filter(Item => !!Item);
   };
@@ -150,10 +150,10 @@ const NotebooksList = ({
 // -----------------------------------------------------------------------------
 // Component Styles
 // -----------------------------------------------------------------------------
-const StyledNotebooksList = styled(NotebooksList)`
+const StyledTutorialsList = styled(TutorialsList)`
   && {
-    max-width: calc(1024px + 30px);
-    padding: 0 15px 15px 15px;
+    max-width: 1024px;
+    padding: 0 0 15px 0;
     margin: 0 auto;
     box-sizing: border-box;
   }
@@ -225,4 +225,4 @@ const StyledNotebooksList = styled(NotebooksList)`
   }
 `;
 
-export default StyledNotebooksList;
+export default StyledTutorialsList;

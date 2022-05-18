@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import StyledHeaderTitle from '../common/TabbedHeader';
-import StyledNotebooksList from './NotebookList';
+import StyledNotebooksList from './TutorialsList';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 
 // -----------------------------------------------------------------------------
 // Component
 // -----------------------------------------------------------------------------
 
-interface INotebooksPanel {
+interface ITutorialsPanel {
   className?: string;
   docTrack: IDocumentManager;
   templateDir: string;
   workDir: string;
 }
 
-const NotebooksPanel = ({
+const TutorialsPanel = ({
   className,
   docTrack,
   templateDir,
   workDir
-}: INotebooksPanel): JSX.Element => {
+}: ITutorialsPanel): JSX.Element => {
   const [selectedTab, setSelectedTab] = useState(0);
 
   const handleNotebookClone = async (
@@ -38,7 +38,7 @@ const NotebooksPanel = ({
 
   const tabs = [
     {
-      body: 'Notebooks',
+      body: 'Select tutorial',
       onClick: () => setSelectedTab(0),
       element: (
         <div className="tab-contents">
@@ -52,7 +52,7 @@ const NotebooksPanel = ({
       )
     },
     {
-      body: 'Notebook history',
+      body: 'Tutorials history',
       onClick: () => setSelectedTab(1),
       element: (
         <div className="tab-contents">
@@ -70,12 +70,12 @@ const NotebooksPanel = ({
   return (
     <div className={`index-panel ${className}`}>
       <StyledHeaderTitle
-        title="EPI2ME Labs Notebooks"
+        title="EPI2ME Labs Tutorials"
         body={
           <p className="large">
-            EPI2ME Labs maintains a growing collection of notebooks on a range
+            EPI2ME Labs maintains a growing collection of tutorials on a range
             of topics from basic quality control to genome assembly. These are
-            free free and open to use by anyone.
+            free and open to use by anyone.
           </p>
         }
         active={selectedTab}
@@ -90,7 +90,7 @@ const NotebooksPanel = ({
 // -----------------------------------------------------------------------------
 // Component Styles
 // -----------------------------------------------------------------------------
-const StyledNotebooksPanel = styled(NotebooksPanel)`
+const StyledTutorialsPanel = styled(TutorialsPanel)`
   && {
     background-color: #f6f6f6;
     padding-bottom: 50px;
@@ -108,6 +108,7 @@ const StyledNotebooksPanel = styled(NotebooksPanel)`
   }
 
   .tab-contents {
+    padding: 0 25px;
     opacity: 0;
     animation-name: fadeInUp;
     animation-duration: 1s;
@@ -115,4 +116,4 @@ const StyledNotebooksPanel = styled(NotebooksPanel)`
   }
 `;
 
-export default StyledNotebooksPanel;
+export default StyledTutorialsPanel;
