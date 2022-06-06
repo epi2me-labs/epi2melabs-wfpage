@@ -22,10 +22,7 @@ const ParameterComponent = ({
   className
 }: IParameterComponent): JSX.Element => (
   <div className={`parameter ${className}`}>
-    {getInputComponent(id, schema, error, (e: string, j: string) => {
-      console.log('step 1');
-      onChange(e, j);
-    })}
+    {getInputComponent(id, schema, error, onChange)}
   </div>
 );
 

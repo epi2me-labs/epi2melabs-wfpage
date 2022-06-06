@@ -1,4 +1,4 @@
-import React, { useState, SetStateAction, Dispatch } from 'react';
+import React, { useState, useEffect, SetStateAction, Dispatch } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StyledWorkflowParameterSection from './WorkflowParameterSection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -75,26 +75,26 @@ const WorkflowLaunchPanel = ({
   // ------------------------------------
   // Handle parameter validation
   // ------------------------------------
-  const handleInputChange = (params: AnyObject, id: string, value: any) => {
-    if (value === '') {
-      const { [id]: _, ...rest } = params;
-      setInstParams(rest);
-      return;
-    }
-    const updated = { ...params, [id]: value };
-    setInstParams(updated);
-    validateParams(updated);
-  };
-
   const validateParams = (params: AnyObject) => {
     const { valid, errors } = validateSchema(params, workflowSchema);
     setValErrors(valid ? {} : groupErrorsByParam(errors));
     setIsValid(valid);
   };
 
-  // useEffect(() => {
-  //   validateParams(instParams);
-  // }, [instParams]);
+  useEffect(() => {
+    validateParams(instParams);
+  }, [instParams]);
+
+  const handleInputChange = (id: string, value: any) => {
+    if (value === '') {
+      setInstParams(instParams => {
+        const { [id]: _, ...rest } = instParams;
+        return rest;
+      });
+      return;
+    }
+    setInstParams(instParams => ({ ...instParams, [id]: value }));
+  };
 
   // ------------------------------------
   // Handle instance naming
@@ -145,8 +145,6 @@ const WorkflowLaunchPanel = ({
     navigate(`/instances/${instance.id}`);
   };
 
-  console.log(instParams);
-
   return (
     <div className={`launch-panel ${className}`}>
       {/* Instance name */}
@@ -185,10 +183,7 @@ const WorkflowLaunchPanel = ({
                   properties={Section.properties}
                   defaults={workflowDefaults}
                   errors={valErrors}
-                  onChange={(e: string, j: string) => {
-                    console.log('step 3');
-                    handleInputChange(instParams, e, j);
-                  }}
+                  onChange={handleInputChange}
                 />
               </li>
             ))}

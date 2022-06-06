@@ -94,10 +94,7 @@ const ParameterSectionComponent = ({
                     default: defaults[key] || value.default
                   }}
                   error={errors[key] || []}
-                  onChange={(e: string, j: string) => {
-                    console.log('step 2');
-                    onChange(e, j);
-                  }}
+                  onChange={onChange}
                 />
               </li>
             ))}
