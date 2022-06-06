@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { GenericObject } from '../../types';
+import { AnyObject } from 'tsdef';
 
 const UNKNOWN = 'UNKNOWN';
 const LAUNCHED = 'LAUNCHED';
@@ -10,7 +10,7 @@ const TERMINATED = 'TERMINATED';
 
 export const finished = [COMPLETED_SUCCESSFULLY, TERMINATED, ENCOUNTERED_ERROR];
 
-const statuses: GenericObject = {
+const statuses: AnyObject = {
   [UNKNOWN]: {
     name: 'UNKNOWN',
     className: 'grey'

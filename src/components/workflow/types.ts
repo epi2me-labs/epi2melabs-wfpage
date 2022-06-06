@@ -1,9 +1,28 @@
+export type Workflow = {
+  url: string;
+  name: string;
+  path: string;
+  desc: string;
+  schema: WorkflowSchema;
+  defaults: WorkflowDefaults;
+  docs: WorkflowDocs;
+};
+
+export type WorkflowSchema = {
+  definitions: ParameterSection[];
+  [key: string]: any;
+};
+
 export type ParameterSection = {
   title: string;
   description: string;
   type?: string;
   fa_icon?: string;
-  properties: { [key: string]: Parameter };
+  properties: ParameterSectionProps;
+};
+
+export type ParameterSectionProps = {
+  [key: string]: Parameter;
 };
 
 export type Parameter = {
@@ -21,18 +40,4 @@ export type WorkflowDocs = {
 
 export type WorkflowDefaults = {
   [key: string]: string;
-};
-
-export type WorkflowSchema = {
-  [key: string]: any;
-};
-
-export type Workflow = {
-  url: string;
-  name: string;
-  path: string;
-  desc: string;
-  schema: WorkflowSchema;
-  defaults: WorkflowDefaults;
-  docs: WorkflowDocs;
 };

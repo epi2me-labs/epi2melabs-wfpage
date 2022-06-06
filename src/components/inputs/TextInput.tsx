@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import StyledTooltip from '../common/Tooltip';
 
 // -----------------------------------------------------------------------------
 // Type definitions
@@ -10,7 +11,8 @@ export interface ITextProps {
   id: string;
   label: string;
   format: string;
-  description: string;
+  description?: string;
+  help_text?: string;
   defaultValue: string;
   minLength?: number;
   maxLength?: number;
@@ -31,6 +33,7 @@ const TextInput = ({
   label,
   format,
   description,
+  help_text,
   defaultValue,
   minLength,
   maxLength,
@@ -39,9 +42,20 @@ const TextInput = ({
   onChange,
   className
 }: ITextInput): JSX.Element => (
-  <div className={`TextInput ${className}`}>
-    <h4>{label}</h4>
-    <p>{description}</p>
+  <div className={`text-input ${className}`}>
+    <div className="text-input-header">
+      <div>
+        <h4>{label}</h4>
+        {description ? <p>{description}</p> : ''}
+      </div>
+      {help_text ? (
+        <div className="text-input-help">
+          <StyledTooltip text={help_text} />
+        </div>
+      ) : (
+        ''
+      )}
+    </div>
     <label htmlFor={id}>
       <input
         id={id}
@@ -51,7 +65,7 @@ const TextInput = ({
         pattern={pattern}
         minLength={minLength}
         maxLength={maxLength}
-        onChange={e => onChange(id, format, e.target.value)}
+        onChange={e => onChange(id, e.target.value)}
       />
     </label>
     {error.length ? (
@@ -108,6 +122,19 @@ const StyledTextInput = styled(TextInput)`
   .error p {
     padding: 15px 0 0 0;
     color: #e34040;
+  }
+
+  .text-input-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .text-input-help {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 0 10px 0;
   }
 `;
 

@@ -1,59 +1,151 @@
-import React from 'react';
-import { GenericStringObject, GenericObject } from '../../types';
+import React, { useState, SetStateAction, Dispatch } from 'react';
+import { useNavigate } from 'react-router-dom';
 import StyledWorkflowParameterSection from './WorkflowParameterSection';
-import { ParameterSection, Parameter } from './types';
-import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { WorkflowSchema } from './types';
+import { requestAPI } from '../../handler';
+import { Nullable, AnyObject } from 'tsdef';
+import styled from 'styled-components';
+import {
+  validateSchema,
+  getSchemaSections,
+  groupErrorsByParam
+} from './schema';
 import {
   faCheckCircle,
   faTimesCircle
 } from '@fortawesome/free-solid-svg-icons';
 
 // -----------------------------------------------------------------------------
+// Global state
+// -----------------------------------------------------------------------------
+type BrowserCtx = {
+  browserLocation: string;
+  setBrowserLocation: Dispatch<SetStateAction<string>>;
+};
+
+const initialBrowserCtx: BrowserCtx = {
+  browserLocation: '/',
+  setBrowserLocation: (): void => {
+    throw new Error('setBrowserLocation function must be overridden');
+  }
+};
+
+export const BrowserContext = React.createContext<BrowserCtx>(
+  initialBrowserCtx
+);
+
+// -----------------------------------------------------------------------------
 // Component
 // -----------------------------------------------------------------------------
 interface IWorkflowLaunchPanel {
   className?: string;
-  parameterSections: ParameterSection[];
-  parameterErrors: GenericObject;
-  parametersValid: boolean;
-  instanceName: string | null;
-  instanceNameError: string | null;
-  instanceCreateError: string | null;
-  onChangeInstanceName: (name: string) => void;
-  onChangeParameter: (id: string, format: string, value: any) => unknown;
-  onClickLaunch: () => void;
+  workflowName: string;
+  workflowSchema: WorkflowSchema;
+  workflowDefaults: AnyObject;
 }
 
 const WorkflowLaunchPanel = ({
   className,
-  parameterSections,
-  parameterErrors,
-  parametersValid,
-  onChangeParameter,
-  instanceName,
-  instanceNameError,
-  instanceCreateError,
-  onChangeInstanceName,
-  onClickLaunch
+  workflowName,
+  workflowSchema,
+  workflowDefaults
 }: IWorkflowLaunchPanel): JSX.Element => {
+  // ------------------------------------
+  // Initialise state
+  // ------------------------------------
+  const navigate = useNavigate();
+
+  // Parameters
+  const paramSections: AnyObject[] = getSchemaSections(workflowSchema);
+  const [instParams, setInstParams] = useState<AnyObject>(workflowDefaults);
+
+  // Validation
+  const [isValid, setIsValid] = useState(false);
+  const [valErrors, setValErrors] = useState<AnyObject>({});
+
+  // Instance Create
+  const [instanceName, setInstanceName] = useState<Nullable<string>>();
+  const [instNameError, setInstNameError] = useState<Nullable<string>>();
+  const [instCreateError, setInstCreateError] = useState<Nullable<string>>();
+
+  // File Browser
+  const [browserLocation, setBrowserLocation] = useState<string>('/');
+
   // ------------------------------------
   // Handle parameter validation
   // ------------------------------------
-  const filterErrorsByParameters = (
-    parameters: { [key: string]: Parameter },
-    errors: GenericStringObject
-  ) =>
-    Object.keys(parameters).reduce(
-      (obj, key) =>
-        Object.prototype.hasOwnProperty.call(errors, key)
-          ? {
-              ...obj,
-              [key]: errors[key]
-            }
-          : obj,
-      {}
-    );
+  const handleInputChange = (params: AnyObject, id: string, value: any) => {
+    if (value === '') {
+      const { [id]: _, ...rest } = params;
+      setInstParams(rest);
+      return;
+    }
+    const updated = { ...params, [id]: value };
+    setInstParams(updated);
+    validateParams(updated);
+  };
+
+  const validateParams = (params: AnyObject) => {
+    const { valid, errors } = validateSchema(params, workflowSchema);
+    setValErrors(valid ? {} : groupErrorsByParam(errors));
+    setIsValid(valid);
+  };
+
+  // useEffect(() => {
+  //   validateParams(instParams);
+  // }, [instParams]);
+
+  // ------------------------------------
+  // Handle instance naming
+  // ------------------------------------
+  const namePattern = new RegExp('^[-0-9A-Za-z_ ]+$');
+  const handleInstanceRename = (name: string) => {
+    if (name === '') {
+      setInstanceName(null);
+      setInstNameError('An instance name cannot be empty');
+      return;
+    }
+    if (!namePattern.test(name)) {
+      setInstanceName(null);
+      setInstNameError(
+        'An instance name can only contain dashes, ' +
+          'underscores, spaces, letters and numbers'
+      );
+      return;
+    }
+    setInstanceName(name);
+    setInstNameError(null);
+  };
+
+  // ------------------------------------
+  // Handle workflow launch
+  // ------------------------------------
+  const launchWorkflow = async () => {
+    if (!isValid || !instanceName) {
+      return;
+    }
+    const { created, instance, error } = await requestAPI<any>('instances', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        workflow: workflowName,
+        params: instParams,
+        ...(instanceName ? { name: instanceName } : {})
+      })
+    });
+    if (error) {
+      setInstCreateError(error);
+    }
+    if (!created) {
+      return;
+    }
+    navigate(`/instances/${instance.id}`);
+  };
+
+  console.log(instParams);
 
   return (
     <div className={`launch-panel ${className}`}>
@@ -63,15 +155,15 @@ const WorkflowLaunchPanel = ({
           id="worflow-name-input"
           type="text"
           placeholder={'Name your experiment...'}
-          onChange={e => onChangeInstanceName(e.target.value)}
+          onChange={e => handleInstanceRename(e.target.value)}
           maxLength={50}
         />
         <div
           className={`instance-name-input-errors ${
-            instanceNameError || !instanceName ? 'invalid' : ''
+            instNameError || !instanceName ? 'invalid' : ''
           }`}
         >
-          {instanceNameError || !instanceName ? (
+          {instNameError || !instanceName ? (
             <FontAwesomeIcon icon={faTimesCircle} />
           ) : (
             <FontAwesomeIcon icon={faCheckCircle} />
@@ -80,37 +172,40 @@ const WorkflowLaunchPanel = ({
       </div>
 
       {/* Workflow params */}
-      <div className="parameter-sections">
-        <ul>
-          {parameterSections.map((Section, idx) => (
-            <li>
-              <StyledWorkflowParameterSection
-                title={Section.title}
-                description={Section.description}
-                fa_icon={Section.fa_icon}
-                initOpen={idx ? false : true}
-                properties={Section.properties}
-                errors={filterErrorsByParameters(
-                  Section.properties,
-                  parameterErrors
-                )}
-                onChange={onChangeParameter}
-              />
-            </li>
-          ))}
-        </ul>
-      </div>
+      <BrowserContext.Provider value={{ browserLocation, setBrowserLocation }}>
+        <div className="parameter-sections">
+          <ul>
+            {paramSections.map((Section, idx) => (
+              <li>
+                <StyledWorkflowParameterSection
+                  title={Section.title}
+                  description={Section.description}
+                  fa_icon={Section.fa_icon}
+                  initOpen={idx ? false : true}
+                  properties={Section.properties}
+                  defaults={workflowDefaults}
+                  errors={valErrors}
+                  onChange={(e: string, j: string) => {
+                    console.log('step 3');
+                    handleInputChange(instParams, e, j);
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </BrowserContext.Provider>
 
       {/* Workflow launch */}
       <div
         className={`launch-control ${
-          parametersValid && instanceName ? 'active' : 'inactive'
+          isValid && instanceName ? 'active' : 'inactive'
         }`}
       >
-        <button onClick={() => onClickLaunch()}>Launch Workflow</button>
-        {instanceCreateError ? (
+        <button onClick={() => launchWorkflow()}>Launch Workflow</button>
+        {instCreateError ? (
           <div className="error">
-            <p>Error: {instanceCreateError}</p>
+            <p>Error: {instCreateError}</p>
           </div>
         ) : (
           ''

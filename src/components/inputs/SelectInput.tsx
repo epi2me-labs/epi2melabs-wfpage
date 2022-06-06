@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import StyledTooltip from '../common/Tooltip';
 
 // -----------------------------------------------------------------------------
 // Type definitions
@@ -15,7 +16,8 @@ export interface ISelectProps {
   id: string;
   label: string;
   format: string;
-  description: string;
+  description?: string;
+  help_text?: string;
   defaultValue?: string;
   choices: ISelectChoice[];
 }
@@ -34,20 +36,29 @@ const SelectInput = ({
   label,
   format,
   description,
+  help_text,
   defaultValue,
   choices,
   error,
   onChange,
   className
 }: ISelectInput): JSX.Element => (
-  <div className={`SelectInput ${className}`}>
-    <h4>{label}</h4>
-    <p>{description}</p>
+  <div className={`select-input ${className}`}>
+    <div className="select-input-header">
+      <div>
+        <h4>{label}</h4>
+        {description ? <p>{description}</p> : ''}
+      </div>
+      {help_text ? (
+        <div className="select-input-help">
+          <StyledTooltip text={help_text} />
+        </div>
+      ) : (
+        ''
+      )}
+    </div>
     <label htmlFor={id}>
-      <select
-        id={id}
-        onChange={(e: any) => onChange(id, format, e.target.value)}
-      >
+      <select id={id} onChange={(e: any) => onChange(id, e.target.value)}>
         {defaultValue ? (
           ''
         ) : (
@@ -125,6 +136,19 @@ const StyledSelectInput = styled(SelectInput)`
   .error p {
     padding: 15px 0 0 0;
     color: #e34040;
+  }
+
+  .select-input-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .select-input-help {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 0 10px 0;
   }
 `;
 
