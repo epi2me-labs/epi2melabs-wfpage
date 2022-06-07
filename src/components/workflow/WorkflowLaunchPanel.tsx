@@ -20,12 +20,12 @@ import {
 // Global state
 // -----------------------------------------------------------------------------
 type BrowserCtx = {
-  browserLocation: string;
-  setBrowserLocation: Dispatch<SetStateAction<string>>;
+  browserLocation: Nullable<string>;
+  setBrowserLocation: Dispatch<SetStateAction<Nullable<string>>>;
 };
 
 const initialBrowserCtx: BrowserCtx = {
-  browserLocation: '/',
+  browserLocation: null,
   setBrowserLocation: (): void => {
     throw new Error('setBrowserLocation function must be overridden');
   }
@@ -70,7 +70,7 @@ const WorkflowLaunchPanel = ({
   const [instCreateError, setInstCreateError] = useState<Nullable<string>>();
 
   // File Browser
-  const [browserLocation, setBrowserLocation] = useState<string>('/');
+  const [browserLocation, setBrowserLocation] = useState<Nullable<string>>(null);
 
   // ------------------------------------
   // Handle parameter validation

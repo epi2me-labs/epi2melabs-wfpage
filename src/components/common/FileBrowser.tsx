@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ChonkyIconFA } from 'chonky-icon-fontawesome';
 import { requestAPI } from '../../handler';
 import styled from 'styled-components';
+import { Nullable } from 'tsdef';
 import {
   ChonkyActions,
   ChonkyFileActionData,
@@ -27,11 +28,23 @@ interface IPath {
   path: string;
   updated: string;
   isdir: boolean;
+  exists: boolean;
+  error: Nullable<string>
+  breadcrumbs: Nullable<string[]>
+}
+
+// interface IFilePath extends IPath {
+//   contents?: Nullable<string[]>
+// }
+
+interface IDirectoryPath extends IPath {
+  contents?: Nullable<IPath[]>
 }
 
 interface IFileBrowser {
   className?: string;
-  initialFolder?: string;
+  rootAlias: string;
+  initialFolder: string;
   onSelect: CallableFunction;
   onClose: CallableFunction;
   allowFiles: boolean;
@@ -49,7 +62,8 @@ export const getParentDir = (path: string) => {
   return parent;
 };
 
-export const getDir = async (path: string) => {
+// TODO: Abstract this away from this component
+export const getDir = async (path: string): Promise<IDirectoryPath> => {
   const encodedPath = encodeURIComponent(path);
   return await requestAPI<any>(`directory/${encodedPath}?contents=true`, {
     method: 'GET'
@@ -102,6 +116,7 @@ const ReadOnlyFileBrowser = ({
   className,
   onSelect,
   onClose,
+  rootAlias,
   initialFolder,
   allowFiles,
   allowDirectories
@@ -111,7 +126,7 @@ const ReadOnlyFileBrowser = ({
   // ------------------------------------
   const [files, setFiles] = useState<FileData[]>([]);
   const [folderChain, setFolderChain] = useState<FileData[]>([]);
-  const [currentFolder, setCurrentFolder] = useState(initialFolder || '/');
+  const [currentFolder, setCurrentFolder] = useState(initialFolder);
   const [currentSelection, setCurrentSelection] = useState<null | string>(null);
   const handleFileAction = useFileActionHandler(
     setCurrentFolder,
@@ -127,7 +142,8 @@ const ReadOnlyFileBrowser = ({
     // Update file listings
     const useFiles = async (currentFolderId: string) => {
       const data = await getDir(currentFolderId);
-      if (!data.contents.length) {
+      setFolderChain(getFolderChain(data.name, data.breadcrumbs || [], rootAlias));
+      if (!data.contents?.length) {
         setFiles([]);
         return;
       }
@@ -142,25 +158,31 @@ const ReadOnlyFileBrowser = ({
     useFiles(currentFolder);
   }, [currentFolder]);
 
-  useEffect(() => {
-    // Update folder breadcrumbs
-    const splitPath = [
-      '/',
-      ...currentFolder.split('/').filter(Item => Item !== '')
-    ];
-    const folders = splitPath.map((Item, index) => {
-      const path = splitPath.slice(0, index + 1).join('/');
-      const parent = getParentDir(path);
+  const getFolderChain = (currentFolder: string, breadcrumbs: string[], rootAlias: string) => {
+    if (!breadcrumbs.length) {
+      return [{
+          id: rootAlias,
+          name: rootAlias,
+          path: rootAlias,
+          parentId: parent,
+          isDir: true
+      }]
+    }
+    const rootName = breadcrumbs[0]
+    const breadcrumbsRooted = [rootName === '/' ? rootAlias : rootName, ...breadcrumbs.slice(1,), currentFolder]
+    return breadcrumbsRooted.map((Item, index) => {
+      const name = Item.replace('/', '');
+      const path = breadcrumbsRooted.slice(0, index + 1).join('/');
+      const parent = breadcrumbsRooted.slice(0, index).join('/');
       return {
         id: path,
-        name: Item === '/' ? 'Host' : Item,
+        name: name,
         path: path,
         parentId: parent,
         isDir: true
       };
     });
-    setFolderChain(folders);
-  }, [currentFolder]);
+  };
 
   // ------------------------------------
   // Enable or disable select button
