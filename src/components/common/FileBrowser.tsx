@@ -64,6 +64,7 @@ export const getParentDir = (path: string) => {
 
 // TODO: Abstract this away from this component
 export const getDir = async (path: string): Promise<IDirectoryPath> => {
+  console.log(path);
   const encodedPath = encodeURIComponent(path);
   return await requestAPI<any>(`directory/${encodedPath}?contents=true`, {
     method: 'GET'
@@ -150,7 +151,9 @@ const ReadOnlyFileBrowser = ({
     // Update file listings
     const useFiles = async (currentFolderId: string) => {
       const data = await getDir(currentFolderId);
-      setFolderChain(getFolderChain(data.name, data.breadcrumbs || []));
+      setFolderChain(
+        getFolderChain(currentFolderId, data.breadcrumbs || [], rootCrumb)
+      );
       if (!data.contents?.length) {
         setFiles([]);
         return;
@@ -166,9 +169,13 @@ const ReadOnlyFileBrowser = ({
     useFiles(currentFolder);
   }, [currentFolder]);
 
-  const getFolderChain = (currentFolder: string, breadcrumbs: string[]) => {
+  const getFolderChain = (
+    currentFolderName: string,
+    breadcrumbs: string[],
+    rootCrumb: FileData
+  ) => {
     const parseChain = () => {
-      const breadcrumbsCurrent = [...breadcrumbs.slice(1), currentFolder];
+      const breadcrumbsCurrent = [...breadcrumbs.slice(1), currentFolderName];
       // This or a reducer?
       let accumulator: string[] = [rootCrumb.path];
       return breadcrumbsCurrent.map(Item => {
@@ -185,7 +192,9 @@ const ReadOnlyFileBrowser = ({
         };
       });
     };
-    return [rootCrumb, ...(breadcrumbs.length ? parseChain() : [])];
+    return currentFolderName === rootCrumb.path
+      ? [rootCrumb]
+      : [rootCrumb, ...parseChain()];
   };
 
   // ------------------------------------
