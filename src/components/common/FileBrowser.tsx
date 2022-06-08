@@ -44,6 +44,7 @@ interface IDirectoryPath extends IPath {
 interface IFileBrowser {
   className?: string;
   rootAlias: string;
+  rootFolder: string;
   initialFolder: string;
   onSelect: CallableFunction;
   onClose: CallableFunction;
@@ -118,6 +119,7 @@ const ReadOnlyFileBrowser = ({
   onSelect,
   onClose,
   rootAlias,
+  rootFolder,
   initialFolder,
   allowFiles,
   allowDirectories
@@ -137,9 +139,9 @@ const ReadOnlyFileBrowser = ({
   );
 
   const rootCrumb = {
-    id: initialFolder,
+    id: rootFolder,
     name: rootAlias,
-    path: initialFolder,
+    path: rootFolder,
     parentId: null,
     isDir: true
   };
@@ -152,7 +154,7 @@ const ReadOnlyFileBrowser = ({
     const useFiles = async (currentFolderId: string) => {
       const data = await getDir(currentFolderId);
       setFolderChain(
-        getFolderChain(currentFolderId, data.breadcrumbs || [], rootCrumb)
+        getFolderChain(data.name, data.breadcrumbs || [], rootCrumb)
       );
       if (!data.contents?.length) {
         setFiles([]);

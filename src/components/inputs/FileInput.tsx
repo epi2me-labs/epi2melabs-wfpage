@@ -83,8 +83,8 @@ const FileInput = ({
       const root = await getDir('/');
       setRootFolder(root.path);
     };
-    updateRoot()
-  }, [])
+    updateRoot();
+  }, []);
 
   // ------------------------------------
   // Handle browser change
@@ -201,6 +201,7 @@ const FileInput = ({
           onClose={onBrowserClose}
           onSelect={(i: string, j: string) => onBrowserSelect(inputRef, i, j)}
           rootAlias={rootFolder === '/' ? 'Root' : rootFolder}
+          rootFolder={rootFolder}
           initialFolder={currentFolder || rootFolder}
           allowFiles={!!['file-path', 'path'].includes(format)}
           allowDirectories={!!['directory-path', 'path'].includes(format)}
