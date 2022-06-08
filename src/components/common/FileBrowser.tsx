@@ -29,8 +29,8 @@ interface IPath {
   updated: string;
   isdir: boolean;
   exists: boolean;
-  error: Nullable<string>
-  breadcrumbs: Nullable<string[]>
+  error: Nullable<string>;
+  breadcrumbs: Nullable<string[]>;
 }
 
 // interface IFilePath extends IPath {
@@ -38,7 +38,7 @@ interface IPath {
 // }
 
 interface IDirectoryPath extends IPath {
-  contents?: Nullable<IPath[]>
+  contents?: Nullable<IPath[]>;
 }
 
 interface IFileBrowser {
@@ -135,6 +135,14 @@ const ReadOnlyFileBrowser = ({
     allowDirectories
   );
 
+  const rootCrumb = {
+    id: initialFolder,
+    name: rootAlias,
+    path: initialFolder,
+    parentId: null,
+    isDir: true
+  };
+
   // ------------------------------------
   // Handle browser location changes
   // ------------------------------------
@@ -142,7 +150,7 @@ const ReadOnlyFileBrowser = ({
     // Update file listings
     const useFiles = async (currentFolderId: string) => {
       const data = await getDir(currentFolderId);
-      setFolderChain(getFolderChain(data.name, data.breadcrumbs || [], rootAlias));
+      setFolderChain(getFolderChain(data.name, data.breadcrumbs || []));
       if (!data.contents?.length) {
         setFiles([]);
         return;
@@ -158,30 +166,26 @@ const ReadOnlyFileBrowser = ({
     useFiles(currentFolder);
   }, [currentFolder]);
 
-  const getFolderChain = (currentFolder: string, breadcrumbs: string[], rootAlias: string) => {
-    if (!breadcrumbs.length) {
-      return [{
-          id: rootAlias,
-          name: rootAlias,
-          path: rootAlias,
+  const getFolderChain = (currentFolder: string, breadcrumbs: string[]) => {
+    const parseChain = () => {
+      const breadcrumbsCurrent = [...breadcrumbs.slice(1), currentFolder];
+      // This or a reducer?
+      let accumulator: string[] = [rootCrumb.path];
+      return breadcrumbsCurrent.map(Item => {
+        const name = Item.replace('/', '');
+        const parent = accumulator.join('/');
+        accumulator = [...accumulator, name];
+        const path = accumulator.join('/');
+        return {
+          id: path,
+          name: name,
+          path: path,
           parentId: parent,
           isDir: true
-      }]
-    }
-    const rootName = breadcrumbs[0]
-    const breadcrumbsRooted = [rootName === '/' ? rootAlias : rootName, ...breadcrumbs.slice(1,), currentFolder]
-    return breadcrumbsRooted.map((Item, index) => {
-      const name = Item.replace('/', '');
-      const path = breadcrumbsRooted.slice(0, index + 1).join('/');
-      const parent = breadcrumbsRooted.slice(0, index).join('/');
-      return {
-        id: path,
-        name: name,
-        path: path,
-        parentId: parent,
-        isDir: true
-      };
-    });
+        };
+      });
+    };
+    return [rootCrumb, ...(breadcrumbs.length ? parseChain() : [])];
   };
 
   // ------------------------------------

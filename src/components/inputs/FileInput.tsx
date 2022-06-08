@@ -190,7 +190,7 @@ const FileInput = ({
         </label>
         <button
           className="file-browser-toggle"
-          onClick={() => rootFolder ? onBrowserOpen(inputRef) : ('')}
+          onClick={() => (rootFolder ? onBrowserOpen(inputRef) : '')}
         >
           Browse
         </button>
