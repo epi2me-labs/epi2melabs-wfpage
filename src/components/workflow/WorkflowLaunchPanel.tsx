@@ -70,7 +70,9 @@ const WorkflowLaunchPanel = ({
   const [instCreateError, setInstCreateError] = useState<Nullable<string>>();
 
   // File Browser
-  const [browserLocation, setBrowserLocation] = useState<Nullable<string>>(null);
+  const [browserLocation, setBrowserLocation] = useState<Nullable<string>>(
+    null
+  );
 
   // ------------------------------------
   // Handle parameter validation

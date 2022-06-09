@@ -1,9 +1,18 @@
-import React, { useState, useRef, useEffect, useCallback, useContext } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useContext
+} from 'react';
 import { requestAPI } from '../../handler';
 import styled from 'styled-components';
 import { debounce } from 'lodash';
 import StyledTooltip from '../common/Tooltip';
-import StyledReadOnlyFileBrowser, { getDir, getParentDir } from '../common/FileBrowser';
+import StyledReadOnlyFileBrowser, {
+  getDir,
+  getParentDir
+} from '../common/FileBrowser';
 import { BrowserContext } from '../workflow/WorkflowLaunchPanel';
 import { Nullable } from 'tsdef';
 
@@ -29,7 +38,6 @@ interface IFileInput extends IFileSettings {
   error: string[];
   onChange: CallableFunction;
 }
-
 
 // -----------------------------------------------------------------------------
 // Helper methods
