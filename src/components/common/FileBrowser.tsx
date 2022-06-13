@@ -55,7 +55,7 @@ interface IFileBrowser {
 // -----------------------------------------------------------------------------
 // Utility methods
 // -----------------------------------------------------------------------------
-export const getParentDir = (path: string) => {
+export const getParentDir = (path: string): string => {
   const parent = path.split('/').slice(0, -1).join('/');
   if (parent === '') {
     return '/';
@@ -65,7 +65,6 @@ export const getParentDir = (path: string) => {
 
 // TODO: Abstract this away from this component
 export const getDir = async (path: string): Promise<IDirectoryPath> => {
-  console.log(path);
   const encodedPath = encodeURIComponent(path);
   return await requestAPI<any>(`directory/${encodedPath}?contents=true`, {
     method: 'GET'
@@ -150,12 +149,16 @@ const ReadOnlyFileBrowser = ({
   // Handle browser location changes
   // ------------------------------------
   useEffect(() => {
-    // Update file listings
+    // When we change location in the filebrowser,
+    // we must update with the contents of the new
+    // directory, and also set the breadcrumbs
     const useFiles = async (currentFolderId: string) => {
       const data = await getDir(currentFolderId);
+      // This sets the breadcrumbs
       setFolderChain(
         getFolderChain(data.name, data.breadcrumbs || [], rootCrumb)
       );
+      // This sets the contents
       if (!data.contents?.length) {
         setFiles([]);
         return;
@@ -178,7 +181,7 @@ const ReadOnlyFileBrowser = ({
   ) => {
     const parseChain = () => {
       const breadcrumbsCurrent = [...breadcrumbs.slice(1), currentFolderName];
-      // This or a reducer?
+      // TODO: this or a reducer?
       let accumulator: string[] = [rootCrumb.path];
       return breadcrumbsCurrent.map(Item => {
         const name = Item.replace('/', '');
