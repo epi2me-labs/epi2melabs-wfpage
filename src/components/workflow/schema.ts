@@ -31,10 +31,6 @@ export const groupErrorsByParam = (
   return errorMapping;
 };
 
-/*
-  Given a ParameterSection, return the sub-schema
-  for each Parameter within.
-*/
 export const excludeHiddenParameters = (
   parameters: ParameterSectionProps
 ): ParameterSectionProps =>
@@ -50,10 +46,6 @@ export const excludeNamedParameters = (
     Object.entries(parameters).filter(([key, _]) => !names.includes(key))
   );
 
-/*
-  Given a ParameterSection, return the sub-schema
-  for each Parameter within.
-*/
 export const getSchemaSections = (
   schema: WorkflowSchema,
   filterHidden = true,
