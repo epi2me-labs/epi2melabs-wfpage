@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved workflow launch with helpful tooltips
 - General refactoring and tidying
 ### Fixed
-- Fixed various bugs 
+- Fixed various bugs
+- Polling for workflows enabled
 
 ## [v0.2.3]
 ### Changed
