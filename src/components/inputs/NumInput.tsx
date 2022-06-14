@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import StyledTooltip from '../common/Tooltip';
 
 // -----------------------------------------------------------------------------
 // Type definitions
@@ -11,7 +12,8 @@ export interface INumProps {
   id: string;
   label: string;
   format: string;
-  description: string;
+  description?: string;
+  help_text?: string;
   defaultValue?: number;
   min: number;
   max: number;
@@ -31,6 +33,7 @@ const NumInput = ({
   label,
   format,
   description,
+  help_text,
   defaultValue,
   min,
   max,
@@ -38,9 +41,20 @@ const NumInput = ({
   onChange,
   className
 }: INumInput): JSX.Element => (
-  <div className={`NumInput ${className}`}>
-    <h4>{label}</h4>
-    <p>{description}</p>
+  <div className={`num-input ${className}`}>
+    <div className="num-input-header">
+      <div>
+        <h4>{label}</h4>
+        {description ? <p>{description}</p> : ''}
+      </div>
+      {help_text ? (
+        <div className="num-input-help">
+          <StyledTooltip text={help_text} />
+        </div>
+      ) : (
+        ''
+      )}
+    </div>
     <label htmlFor={id}>
       <input
         id={id}
@@ -48,7 +62,7 @@ const NumInput = ({
         defaultValue={defaultValue}
         min={min}
         max={max}
-        onChange={(e: any) => onChange(id, format, Number(e.target.value))}
+        onChange={(e: any) => onChange(id, Number(e.target.value))}
       />
     </label>
     {error.length ? (
@@ -107,6 +121,19 @@ const StyledNumInput = styled(NumInput)`
 
   input::-webkit-inner-spin-button {
     -webkit-appearance: none;
+  }
+
+  .num-input-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .num-input-help {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 0 10px 0;
   }
 `;
 

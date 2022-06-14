@@ -30,6 +30,10 @@ const WorkflowsList = ({ className }: IWorkflowsList): JSX.Element => {
 
   useEffect(() => {
     getWorkflows();
+    const wfMonitor = setInterval(() => getWorkflows(), 5000);
+    return () => {
+      clearInterval(wfMonitor);
+    };
   }, []);
 
   if (workflows.length === 0) {

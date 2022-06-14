@@ -1,5 +1,5 @@
 import React from 'react';
-import { WorkflowSchema } from './types';
+import { Parameter } from './types';
 import StyledBooleanInput, { IBooleanProps } from '../inputs/BooleanInput';
 import StyledSelectInput, { ISelectProps } from '../inputs/SelectInput';
 import StyledTextInput, { ITextProps } from '../inputs/TextInput';
@@ -11,22 +11,23 @@ import StyledNumInput, { INumProps } from '../inputs/NumInput';
 // -----------------------------------------------------------------------------
 export const mapSchemaToBooleanInput = (
   id: string,
-  schema: WorkflowSchema
+  schema: Parameter
 ): IBooleanProps => ({
   id: id,
   label: id,
   format: schema.format || '',
-  description: schema.description || schema.help_text,
+  description: schema.description,
+  help_text: schema.help_text,
   defaultValue: schema.default
 });
 
-export const isBooleanInput = (schema: WorkflowSchema): boolean =>
+export const isBooleanInput = (schema: Parameter): boolean =>
   schema.type === 'boolean' ? true : false;
 
 // -----------------------------------------------------------------------------
 // File input mapping
 // -----------------------------------------------------------------------------
-export const isFileInput = (schema: WorkflowSchema): boolean =>
+export const isFileInput = (schema: Parameter): boolean =>
   schema.type === 'string' &&
   ['file-path', 'directory-path', 'path'].includes(schema.format)
     ? true
@@ -37,18 +38,19 @@ export const isFileInput = (schema: WorkflowSchema): boolean =>
 // -----------------------------------------------------------------------------
 export const mapSchemaToNumInput = (
   id: string,
-  schema: WorkflowSchema
+  schema: Parameter
 ): INumProps => ({
   id: id,
   label: id,
   format: schema.format || '',
-  description: schema.description || schema.help_text,
+  description: schema.description,
+  help_text: schema.help_text,
   defaultValue: schema.default,
   min: schema.minimum,
   max: schema.maximum
 });
 
-export const isNumInput = (schema: WorkflowSchema): boolean =>
+export const isNumInput = (schema: Parameter): boolean =>
   ['integer', 'number'].includes(schema.type) ? true : false;
 
 // -----------------------------------------------------------------------------
@@ -56,17 +58,18 @@ export const isNumInput = (schema: WorkflowSchema): boolean =>
 // -----------------------------------------------------------------------------
 export const mapSchemaToSelectInput = (
   id: string,
-  schema: WorkflowSchema
+  schema: Parameter
 ): ISelectProps => ({
   id: id,
   label: id,
   format: schema.format || '',
-  description: schema.description || schema.help_text,
+  description: schema.description,
+  help_text: schema.help_text,
   defaultValue: schema.default,
   choices: (schema.enum as string[]).map(Item => ({ value: Item, label: Item }))
 });
 
-export const isSelectInput = (schema: WorkflowSchema): boolean =>
+export const isSelectInput = (schema: Parameter): boolean =>
   schema.enum ? true : false;
 
 // -----------------------------------------------------------------------------
@@ -74,16 +77,17 @@ export const isSelectInput = (schema: WorkflowSchema): boolean =>
 // -----------------------------------------------------------------------------
 export const mapSchemaToTextInput = (
   id: string,
-  schema: WorkflowSchema
+  schema: Parameter
 ): ITextProps => ({
   id: id,
   label: id,
   format: schema.format || '',
-  description: schema.description || schema.help_text,
+  description: schema.description,
+  help_text: schema.help_text,
   defaultValue: schema.default
 });
 
-export const isTextInput = (schema: WorkflowSchema): boolean =>
+export const isTextInput = (schema: Parameter): boolean =>
   schema.type === 'string' && !schema.enum ? true : false;
 
 // -----------------------------------------------------------------------------
@@ -91,7 +95,7 @@ export const isTextInput = (schema: WorkflowSchema): boolean =>
 // -----------------------------------------------------------------------------
 export const getInputComponent = (
   id: string,
-  schema: WorkflowSchema,
+  schema: Parameter,
   error: string[],
   onChange: CallableFunction
 ): JSX.Element => {

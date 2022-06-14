@@ -13,21 +13,24 @@ import { IconName, IconPrefix } from '@fortawesome/fontawesome-svg-core';
 import StyledParameterComponent from './WorkflowParameter';
 import { ParameterSection } from './types';
 import styled from 'styled-components';
+import { AnyObject } from 'tsdef';
 
 // -----------------------------------------------------------------------------
 // Component
 // -----------------------------------------------------------------------------
 interface IParameterSectionComponent extends ParameterSection {
   errors: { [key: string]: string[] };
-  onChange: CallableFunction;
   className?: string;
+  defaults: AnyObject;
   initOpen: boolean;
+  onChange: CallableFunction;
 }
 
 const ParameterSectionComponent = ({
   title,
   fa_icon,
   properties,
+  defaults,
   errors,
   initOpen,
   onChange,
@@ -86,7 +89,10 @@ const ParameterSectionComponent = ({
               <li>
                 <StyledParameterComponent
                   id={key}
-                  schema={value}
+                  schema={{
+                    ...value,
+                    default: defaults[key] || value.default
+                  }}
                   error={errors[key] || []}
                   onChange={onChange}
                 />

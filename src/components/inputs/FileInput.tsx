@@ -1,12 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faFolder,
-  faFile,
-  faLevelUpAlt
-} from '@fortawesome/free-solid-svg-icons';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useContext
+} from 'react';
 import { requestAPI } from '../../handler';
 import styled from 'styled-components';
+import { debounce } from 'lodash';
+import StyledTooltip from '../common/Tooltip';
+import StyledReadOnlyFileBrowser, {
+  getDir,
+  getParentDir
+} from '../common/FileBrowser';
+import { BrowserContext } from '../workflow/WorkflowLaunchPanel';
+import { Nullable } from 'tsdef';
 
 // -----------------------------------------------------------------------------
 // Type definitions
@@ -19,27 +27,23 @@ export interface IFileSettings {
   id: string;
   label: string;
   format: string;
-  description: string;
+  description?: string;
+  help_text?: string;
   defaultValue?: string;
   pattern?: string;
 }
 
 interface IFileInput extends IFileSettings {
+  className?: string;
   error: string[];
   onChange: CallableFunction;
-  className?: string;
-}
-
-interface IPath {
-  name: string;
-  path: string;
-  updated: string;
-  isdir: boolean;
 }
 
 // -----------------------------------------------------------------------------
 // Helper methods
 // -----------------------------------------------------------------------------
+const getNativeValue = (element: any) => element.current.value;
+
 const setNativeValue = (element: any, value: any) => {
   const valueSetter = Object.getOwnPropertyDescriptor(element, 'value')?.set;
   const prototype = Object.getPrototypeOf(element);
@@ -55,39 +59,6 @@ const setNativeValue = (element: any, value: any) => {
   }
 };
 
-const getNativeValue = (element: any) => element.current.value;
-
-const mapFormatToEndpoint = (format: string) => {
-  let fmt;
-  switch (format) {
-    case 'file-path':
-      fmt = 'file';
-      break;
-    case 'directory-path':
-      fmt = 'directory';
-      break;
-    default:
-      fmt = 'path';
-  }
-  return fmt;
-};
-
-const getDirContents = async (path: string) => {
-  const encodedPath = encodeURIComponent(path);
-  const data = await requestAPI<any>(`directory/${encodedPath}?contents=true`, {
-    method: 'GET'
-  });
-  return data.contents;
-};
-
-const getParentDir = (path: string) => {
-  const parent = path.split('/').slice(0, -1).join('/');
-  if (parent === '') {
-    return '/';
-  }
-  return parent;
-};
-
 // -----------------------------------------------------------------------------
 // Component
 // -----------------------------------------------------------------------------
@@ -96,6 +67,7 @@ const FileInput = ({
   label,
   format,
   description,
+  help_text,
   defaultValue,
   pattern,
   error,
@@ -105,15 +77,90 @@ const FileInput = ({
   // ------------------------------------
   // Set up state
   // ------------------------------------
-  const [selectedPath, setSelectedPath] = useState<string>('');
-  const [browserError, setBrowserError] = useState<string | null>(null);
-  const [browserLocation, setBrowserLocation] = useState<string>('/');
-  const [browserContents, setBrowserContents] = useState<IPath[]>([]);
-  const [browserOpen, setBrowserOpen] = useState(false);
   const inputRef = useRef(null);
+  const [rootFolder, setRootFolder] = useState<Nullable<string>>(null);
+  const { browserLocation, setBrowserLocation } = useContext(BrowserContext);
+  const [browserError, setBrowserError] = useState<Nullable<string>>(null);
+  const [browserOpen, setBrowserOpen] = useState(false);
+  const [currentFolder, setCurrentFolder] = useState(
+    defaultValue || browserLocation
+  );
 
-  const mappedFormat = mapFormatToEndpoint(format);
+  useEffect(() => {
+    const updateRoot = async () => {
+      const root = await getDir('/');
+      setRootFolder(root.path);
+    };
+    updateRoot();
+  }, []);
 
+  // ------------------------------------
+  // Handle browser change
+  // ------------------------------------
+  const onBrowserOpen = (ref: any) => {
+    const value = getNativeValue(ref);
+    const hasValue = !!value;
+    if (hasValue) {
+      setCurrentFolder(getParentDir(value));
+    } else {
+      setCurrentFolder(browserLocation);
+    }
+    setBrowserOpen(true);
+  };
+
+  const onBrowserClose = (currentFolder: string) => {
+    setCurrentFolder(currentFolder);
+    setBrowserLocation(currentFolder);
+    setBrowserOpen(false);
+  };
+
+  const onBrowserSelect = (
+    ref: any,
+    currentSelection: string,
+    currentFolder: string
+  ) => {
+    // Update input element
+    const current = ref.current;
+    if (current) {
+      setNativeValue(current, currentSelection);
+      const event = new Event('input', { bubbles: true });
+      current.dispatchEvent(event);
+    }
+    setCurrentFolder(currentFolder);
+    setBrowserLocation(currentFolder);
+    setBrowserOpen(false);
+  };
+
+  // ------------------------------------
+  // Handle input change
+  // ------------------------------------
+  const validatePath = async (path: string) => {
+    if (
+      [/http:\/\//, /https:\/\//, /^$/, /s3:\/\//].some(rx => rx.test(path))
+    ) {
+      setBrowserError(null);
+      onChange(id, path);
+      return;
+    }
+    const encodedPath = encodeURIComponent(path);
+    const fmt = format.split('-')[0];
+    const data = await requestAPI<any>(`${fmt}/${encodedPath}`, {
+      method: 'GET'
+    });
+    if (!data.exists) {
+      setBrowserError(data.error);
+      onChange(id, '');
+      return;
+    }
+    setBrowserError(null);
+    onChange(id, path);
+  };
+
+  const handler = useCallback(debounce(validatePath, 200), []);
+
+  // ------------------------------------
+  // Collect errors
+  // ------------------------------------
   let errors: string[] = [];
   if (error.length) {
     errors = [...error];
@@ -122,86 +169,21 @@ const FileInput = ({
     errors = [browserError, ...errors];
   }
 
-  // ------------------------------------
-  // Handle browser change
-  // ------------------------------------
-  useEffect(() => {
-    const update = async () => {
-      const contents = await getDirContents(browserLocation);
-      if (contents) {
-        setBrowserContents(
-          contents
-            .filter((Item: IPath) =>
-              mappedFormat === 'directory' && !Item.isdir ? false : true
-            )
-            .sort((a: IPath, b: IPath) => a.name.localeCompare(b.name))
-        );
-      }
-    };
-    update();
-  }, [browserLocation]);
-
-  const handleDoubleClickPath = (path: string, dir: boolean) => {
-    if (dir) {
-      setBrowserLocation(path);
-    }
-  };
-
-  // ------------------------------------
-  // Handle input change
-  // ------------------------------------
-  const handleInputChange = (value: any) => {
-    const fmt = mapFormatToEndpoint(format);
-    validatePath(value, fmt);
-  };
-
-  const handleClickPath = (path: string, dir: boolean, ref: any) => {
-    if (path === selectedPath) {
-      return;
-    }
-    if (!dir && mappedFormat === 'directory') {
-      return;
-    }
-    if (dir && mappedFormat === 'file') {
-      return;
-    }
-    setSelectedPath(path);
-    const current = ref.current;
-    if (current) {
-      setNativeValue(current, path);
-      const event = new Event('input', { bubbles: true });
-      current.dispatchEvent(event);
-    }
-  };
-
-  // ------------------------------------
-  // Handle path validation
-  // ------------------------------------
-  const validatePath = async (path: string, format: string) => {
-    if (
-      [/http:\/\//, /https:\/\//, /^$/, /s3:\/\//].some(rx => rx.test(path))
-    ) {
-      setBrowserError(null);
-      onChange(id, format, path);
-      return;
-    }
-    const encodedPath = encodeURIComponent(path);
-    const data = await requestAPI<any>(`${format}/${encodedPath}`, {
-      method: 'GET'
-    });
-    if (!data.exists) {
-      setBrowserError(data.error);
-      onChange(id, format, '');
-      return;
-    }
-    setBrowserError(null);
-    onChange(id, format, path);
-  };
-
   return (
-    <div id={id} className={`FileInput ${className}`}>
-      <h4>{label}</h4>
-      <p>{description}</p>
+    <div id={id} className={`file-input ${className}`}>
+      <div className="file-input-header">
+        <div>
+          <h4>{label}</h4>
+          {description ? <p>{description}</p> : ''}
+        </div>
+        {help_text ? (
+          <div className="file-input-help">
+            <StyledTooltip text={help_text} />
+          </div>
+        ) : (
+          ''
+        )}
+      </div>
       <div className="file-input-container">
         <label htmlFor={id}>
           <input
@@ -211,78 +193,31 @@ const FileInput = ({
             placeholder={'Enter a value'}
             defaultValue={defaultValue}
             pattern={pattern}
-            onChange={e => {
-              handleInputChange(e.target.value);
-            }}
+            onChange={e => handler(e.target.value)}
           />
         </label>
         <button
           className="file-browser-toggle"
-          onClick={() => {
-            if (!browserOpen) {
-              setSelectedPath(getNativeValue(inputRef));
-              const parent = getParentDir(selectedPath);
-              setBrowserLocation(parent);
-              setBrowserOpen(true);
-              return;
-            }
-            setBrowserOpen(false);
-          }}
+          onClick={() => (rootFolder ? onBrowserOpen(inputRef) : '')}
         >
           Browse
         </button>
       </div>
 
-      {browserOpen ? (
-        <div className="file-browser">
-          <div className="file-browser-contents">
-            <ul>
-              {browserLocation !== '/' ? (
-                <li className="file-browser-path file-browser-back">
-                  <button
-                    onClick={() => {
-                      const parent = getParentDir(browserLocation);
-                      setBrowserLocation(parent);
-                      setSelectedPath('');
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faLevelUpAlt} />
-                    Go Up
-                  </button>
-                </li>
-              ) : (
-                ''
-              )}
-              {browserContents.map(Item => (
-                <li
-                  className={`file-browser-path ${
-                    selectedPath === Item.path ? 'selected' : ''
-                  }`}
-                >
-                  <button
-                    onClick={() =>
-                      handleClickPath(Item.path, Item.isdir, inputRef)
-                    }
-                    onDoubleClick={() =>
-                      handleDoubleClickPath(Item.path, Item.isdir)
-                    }
-                  >
-                    <FontAwesomeIcon icon={Item.isdir ? faFolder : faFile} />
-                    {Item.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <div className="file-browser-close">
-              <button onClick={() => setBrowserOpen(false)}>
-                {selectedPath.length ? 'Select' : 'Close'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {browserOpen && rootFolder ? (
+        <StyledReadOnlyFileBrowser
+          onClose={onBrowserClose}
+          onSelect={(i: string, j: string) => onBrowserSelect(inputRef, i, j)}
+          rootAlias={rootFolder === '/' ? 'Root' : rootFolder}
+          rootFolder={rootFolder}
+          initialFolder={currentFolder || rootFolder}
+          allowFiles={!!['file-path', 'path'].includes(format)}
+          allowDirectories={!!['directory-path', 'path'].includes(format)}
+        />
       ) : (
         ''
       )}
+
       {errors.length ? (
         <div className="error">
           {errors.map(Err => (
@@ -485,6 +420,19 @@ const StyledFileInput = styled(FileInput)`
   .error p {
     padding: 15px 0 0 0;
     color: #e34040;
+  }
+
+  .file-input-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .file-input-help {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 0 10px 0;
   }
 `;
 

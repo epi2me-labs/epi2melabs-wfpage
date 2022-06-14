@@ -3,12 +3,12 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
-import { GenericObject } from '../../types';
 import StyledLoadingSpinner from '../common/LoadingSpinner';
 import { finished } from './StatusIndicator';
 import { requestAPI } from '../../handler';
 import styled from 'styled-components';
 import { Instance } from './types';
+import { Nullable, AnyObject } from 'tsdef';
 
 // -----------------------------------------------------------------------------
 // Component
@@ -28,7 +28,7 @@ const InstanceOutputsPanel = ({
   app,
   docTrack
 }: IInstanceOutputsPanel): JSX.Element => {
-  const [instanceOutputs, setInstanceOutputs] = useState<GenericObject[]>([]);
+  const [instanceOutputs, setInstanceOutputs] = useState<AnyObject[]>([]);
 
   // ------------------------------------
   // Handle instance initialisation
@@ -94,7 +94,7 @@ const InstanceOutputsPanel = ({
   // ------------------------------------
   // Handle find report
   // ------------------------------------
-  const getReport = (instanceData: Instance): null | GenericObject => {
+  const getReport = (instanceData: Instance): Nullable<AnyObject> => {
     let report = null;
     if (instanceOutputs.length) {
       instanceOutputs.forEach(Item => {

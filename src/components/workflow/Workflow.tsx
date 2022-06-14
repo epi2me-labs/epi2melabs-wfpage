@@ -1,18 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { requestAPI } from '../../handler';
-import { useParams, useNavigate } from 'react-router-dom';
-import { GenericObject } from '../../types';
+import { useParams } from 'react-router-dom';
 import StyledTabbedHeader from '../common/TabbedHeader';
-import { validateSchema, parseValidationErrors } from '../../schema';
 import StyledWorkflowLaunchPanel from './WorkflowLaunchPanel';
 import StyledWorkflowDocsPanel from './WorkflowDocsPanel';
 import styled from 'styled-components';
-import {
-  Workflow,
-  WorkflowDefaults,
-  ParameterSection,
-  Parameter
-} from './types';
+import { Workflow } from './types';
+import { Nullable } from 'tsdef';
+
+// -----------------------------------------------------------------------------
+// Helper methods
+// -----------------------------------------------------------------------------
+const getWorkflowData = async (name: string): Promise<Workflow> => {
+  return await requestAPI<any>(`workflows/${name}`);
+};
+
+const getInstanceParams = async (instance_id: string) => {
+  const { path } = await requestAPI<any>(`instances/${instance_id}`);
+  const encodedPath = encodeURIComponent(`${path}/params.json`);
+  const { exists, contents } = await requestAPI<any>(
+    `file/${encodedPath}?contents=true`
+  );
+  if (!exists) {
+    return null;
+  }
+  return JSON.parse(contents.join(''));
+};
 
 // -----------------------------------------------------------------------------
 // Component
@@ -23,188 +36,42 @@ interface IWorkflowComponent {
 
 const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   // ------------------------------------
-  // Set up state
+  // Initialise state
   // ------------------------------------
   const params = useParams();
-  const navigate = useNavigate();
-  const [workflowData, setWorkflowData] = useState<Workflow | undefined>();
-  const [workflowParams, setWorkflowParams] = useState<WorkflowDefaults>({});
-  const [workflowParamsValid, setWorkflowParamsValid] = useState(false);
-  const [workflowParamsErrors, setWorkflowParamsErrors] = useState<
-    GenericObject
-  >({});
-  const [workflowActiveSections, setWorkflowActiveSections] = useState<
-    ParameterSection[]
-  >([]);
-  const [instanceNameError, setInstanceNameError] = useState<string | null>(
-    null
-  );
-  const [instanceCreateError, setInstanceCreateError] = useState<string | null>(
-    null
-  );
-  const [instanceName, setInstanceName] = useState<string | null>(null);
-  const [animationClass, setAnimationClass] = useState('animated');
+  const workflowName = params.name as string;
+  const instanceId = params.instance_id || null;
   const [selectedTab, setSelectedTab] = useState(0);
-
-  // ------------------------------------
-  // Handle component initialisation
-  // ------------------------------------
-  const getWorkflowData = async () => {
-    return await requestAPI<any>(`workflows/${params.name}`);
-  };
-
-  const getInstanceParams = async (instance_id: string | undefined) => {
-    if (instance_id) {
-      const { path } = await requestAPI<any>(`instances/${instance_id}`);
-      const encodedPath = encodeURIComponent(`${path}/params.json`);
-      const { exists, contents } = await requestAPI<any>(
-        `file/${encodedPath}?contents=true`
-      );
-      if (!exists) {
-        return null;
-      }
-      return JSON.parse(contents.join(''));
-    }
-  };
-
-  const filterHiddenParameters = (parameters: { [key: string]: Parameter }) =>
-    Object.entries(parameters)
-      .filter(([key, Property]) => !Property.hidden && key !== 'out_dir')
-      .reduce(
-        (obj, prop) => ({
-          [prop[0]]: prop[1],
-          ...obj
-        }),
-        {}
-      );
-
-  const getSchemaSections = (definitions: ParameterSection[]) => {
-    return definitions
-      .map(Section => ({
-        ...Section,
-        properties: filterHiddenParameters(Section.properties)
-      }))
-      .filter(Def => Object.keys(Def.properties).length !== 0);
-  };
-
-  const overrideDefaults = (
-    sections: ParameterSection[],
-    defaults: GenericObject
-  ) => {
-    return sections.map(Section => ({
-      ...Section,
-      properties: Object.entries(Section.properties).reduce(
-        (obj, prop) => ({
-          [prop[0]]: {
-            ...prop[1],
-            default: defaults[prop[0]] || prop[1].default
-          },
-          ...obj
-        }),
-        {}
-      )
-    }));
-  };
+  const [workflowData, setWorkflowData] = useState<Nullable<Workflow>>(null);
+  const [animationClass, setAnimationClass] = useState('animated');
 
   useEffect(() => {
-    const init = async () => {
-      // Get the initial workflow data
-      const workflowData = await getWorkflowData();
-      setWorkflowData(workflowData);
-      // Acquire the workflow default params
-      const defaults = await getInstanceParams(params.instance_id);
-      if (defaults) {
-        setWorkflowParams(defaults);
+    const getData = async () => {
+      // We set workflow data after getting it from the API
+      const data = await getWorkflowData(params.name as string);
+      // But if an instanceId is specified, we use the parameter
+      // values from that instance run instead
+      if (instanceId) {
+        setWorkflowData({
+          ...data,
+          defaults: {
+            ...data.defaults,
+            ...((await getInstanceParams(instanceId)) || {})
+          }
+        });
       } else {
-        setWorkflowParams(workflowData.defaults);
+        setWorkflowData(data);
       }
-      // Get and set the workflow schema sections
-      const sections = getSchemaSections(
-        Object.values(workflowData.schema.definitions)
-      );
-      if (defaults) {
-        const overriden = overrideDefaults(sections, defaults);
-        setWorkflowActiveSections(overriden);
-        return;
-      }
-      setWorkflowActiveSections(sections);
     };
-    init();
-  }, []);
+    getData();
+  }, [params]);
 
   // ------------------------------------
-  // Handle parameter validation
+  // Handle missing data
   // ------------------------------------
-  const handleInputChange = (id: string, format: string, value: any) => {
-    if (value === '') {
-      const { [id]: _, ...rest } = workflowParams;
-      setWorkflowParams(rest);
-      return;
-    }
-    setWorkflowParams({ ...workflowParams, [id]: value });
-  };
-
-  useEffect(() => {
-    if (workflowData) {
-      const { valid, errors } = validateSchema(
-        workflowParams,
-        workflowData.schema
-      );
-      valid
-        ? setWorkflowParamsErrors({})
-        : setWorkflowParamsErrors(parseValidationErrors(errors));
-      setWorkflowParamsValid(valid);
-    }
-  }, [workflowParams]);
-
-  // ------------------------------------
-  // Handle instance naming
-  // ------------------------------------
-  const namePattern = new RegExp('^[-0-9A-Za-z_ ]+$');
-  const handleInstanceRename = (name: string) => {
-    if (name === '') {
-      setInstanceName(null);
-      setInstanceNameError('An instance name cannot be empty');
-      return;
-    }
-    if (!namePattern.test(name)) {
-      setInstanceName(null);
-      setInstanceNameError(
-        'An instance name can only contain dashes, ' +
-          'underscores, spaces, letters and numbers'
-      );
-      return;
-    }
-    setInstanceName(name);
-    setInstanceNameError(null);
-  };
-
-  // ------------------------------------
-  // Handle workflow launch
-  // ------------------------------------
-  const launchWorkflow = async () => {
-    if (!workflowParamsValid || !instanceName) {
-      return;
-    }
-    const { created, instance, error } = await requestAPI<any>('instances', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        workflow: params.name,
-        params: workflowParams,
-        ...(instanceName ? { name: instanceName } : {})
-      })
-    });
-    if (error) {
-      setInstanceCreateError(error);
-    }
-    if (!created) {
-      return;
-    }
-    navigate(`/instances/${instance.id}`);
-  };
+  if (!workflowData) {
+    return <React.Fragment></React.Fragment>;
+  }
 
   // ------------------------------------
   // Tabbed interface
@@ -219,15 +86,9 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
           onAnimationEnd={() => setAnimationClass('')}
         >
           <StyledWorkflowLaunchPanel
-            parameterSections={workflowActiveSections}
-            parameterErrors={workflowParamsErrors}
-            parametersValid={workflowParamsValid}
-            onChangeParameter={handleInputChange}
-            instanceName={instanceName}
-            instanceNameError={instanceNameError}
-            instanceCreateError={instanceCreateError}
-            onChangeInstanceName={handleInstanceRename}
-            onClickLaunch={launchWorkflow}
+            workflowName={workflowName}
+            workflowSchema={workflowData?.schema}
+            workflowDefaults={workflowData?.defaults || {}}
           />
         </div>
       )
@@ -252,7 +113,6 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
           active={selectedTab}
           tabs={tabs}
         />
-
         {tabs[selectedTab].element}
       </div>
     </div>

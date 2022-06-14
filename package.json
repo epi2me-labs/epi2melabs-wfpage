@@ -57,13 +57,18 @@
     "@jupyterlab/services": "^6.1.0",
     "@jupyterlab/settingregistry": "^3.1.0",
     "ajv": "^8.8.0",
+    "chonky": "^2.3.2",
+    "chonky-icon-fontawesome": "^2.3.2",
+    "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "react-markdown": "^8.0.3",
     "react-router-dom": "^6.3.0",
-    "styled-components": "^5.3.5"
+    "styled-components": "^5.3.5",
+    "tsdef": "^0.0.14"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.1.0",
+    "@types/lodash": "^4.14.182",
     "@types/styled-components": "^5.1.25",
     "@typescript-eslint/eslint-plugin": "^4.8.1",
     "@typescript-eslint/parser": "^4.8.1",

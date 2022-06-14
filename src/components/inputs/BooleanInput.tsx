@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import styled from 'styled-components';
+import StyledTooltip from '../common/Tooltip';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
-import styled from 'styled-components';
 
 // -----------------------------------------------------------------------------
 // Type definitions
@@ -12,7 +13,8 @@ export interface IBooleanProps {
   id: string;
   label: string;
   format: string;
-  description: string;
+  description?: string;
+  help_text?: string;
   defaultValue?: boolean;
 }
 
@@ -30,6 +32,7 @@ const BooleanInput = ({
   label,
   format,
   description,
+  help_text,
   defaultValue,
   error,
   onChange,
@@ -39,12 +42,23 @@ const BooleanInput = ({
 
   return (
     <div
-      className={`BooleanInput ${className} ${
+      className={`boolean-input ${className} ${
         isChecked ? 'checked' : 'unchecked'
       }`}
     >
-      <h4>{label}</h4>
-      <p>{description}</p>
+      <div className="boolean-input-header">
+        <div>
+          <h4>{label}</h4>
+          {description ? <p>{description}</p> : ''}
+        </div>
+        {help_text ? (
+          <div className="boolean-input-help">
+            <StyledTooltip text={help_text} />
+          </div>
+        ) : (
+          ''
+        )}
+      </div>
       <label htmlFor={id}>
         <input
           id={id}
@@ -134,6 +148,19 @@ const StyledBooleanInput = styled(BooleanInput)`
   input:checked + span {
     background-color: #005c75;
     color: white;
+  }
+
+  .boolean-input-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .boolean-input-help {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 0 10px 0;
   }
 `;
 
