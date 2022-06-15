@@ -11,9 +11,22 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { IconName, IconPrefix } from '@fortawesome/fontawesome-svg-core';
 import StyledParameterComponent from './WorkflowParameter';
-import { ParameterSection } from './types';
+import { ParameterSection, ParameterSectionProps } from './types';
 import styled from 'styled-components';
 import { AnyObject } from 'tsdef';
+
+// -----------------------------------------------------------------------------
+// Helper methods
+// -----------------------------------------------------------------------------
+const checkIsValid = (
+  properties: ParameterSectionProps,
+  errors: { [key: string]: string[] }
+) => {
+  const error_keys = Object.keys(errors);
+  return Object.keys(properties).filter(Key => error_keys.includes(Key)).length
+    ? false
+    : true;
+};
 
 // -----------------------------------------------------------------------------
 // Component
@@ -40,7 +53,7 @@ const ParameterSectionComponent = ({
   // Set up state
   // ------------------------------------
   const [isOpen, setIsOpen] = useState(initOpen);
-  const isValid = Object.keys(errors).length === 0 ? true : false;
+  const isValid = checkIsValid(properties, errors);
 
   // ------------------------------------
   // Handle fa_icon
