@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import StyledHeaderTitle from '../common/TabbedHeader';
 import StyledNotebooksList from './TutorialsList';
+import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { IDocumentManager } from '@jupyterlab/docmanager';
+import { toArray } from '@lumino/algorithm';
 
 // -----------------------------------------------------------------------------
 // Component
@@ -14,6 +17,20 @@ interface ITutorialsPanel {
   templateDir: string;
   workDir: string;
 }
+
+const trustNotebook = (path: string, docTrack: IDocumentManager) => {
+  const doc: IDocumentWidget | undefined = docTrack.open(path);
+  const notebook: NotebookPanel | undefined = doc?.content as NotebookPanel;
+
+  const _trustNotebook = (model: INotebookModel) => {
+    const cells = toArray(model.cells);
+    if (cells.length) {
+      cells.forEach(cell => (cell.trusted = true));
+      notebook?.model?.stateChanged.disconnect(_trustNotebook);
+    }
+  };
+  notebook?.model?.stateChanged.connect(_trustNotebook);
+};
 
 const TutorialsPanel = ({
   className,
@@ -28,12 +45,12 @@ const TutorialsPanel = ({
     docTrack: IDocumentManager
   ) => {
     await docTrack.copy(path, workDir).then(e => {
-      docTrack.open(path);
+      trustNotebook(e.path, docTrack);
     });
   };
 
   const handleNotebookOpen = (path: string, docTrack: IDocumentManager) => {
-    docTrack.open(path);
+    trustNotebook(path, docTrack);
   };
 
   const tabs = [

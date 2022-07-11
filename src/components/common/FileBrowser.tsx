@@ -30,7 +30,6 @@ interface IPath {
   isdir: boolean;
   exists: boolean;
   error: Nullable<string>;
-  breadcrumbs: Nullable<string[]>;
 }
 
 // interface IFilePath extends IPath {
@@ -43,8 +42,6 @@ interface IDirectoryPath extends IPath {
 
 interface IFileBrowser {
   className?: string;
-  rootAlias: string;
-  rootFolder: string;
   initialFolder: string;
   onSelect: CallableFunction;
   onClose: CallableFunction;
@@ -67,6 +64,12 @@ export const getParentDir = (path: string): string => {
 export const getDir = async (path: string): Promise<IDirectoryPath> => {
   const encodedPath = encodeURIComponent(path);
   return await requestAPI<any>(`directory/${encodedPath}?contents=true`, {
+    method: 'GET'
+  });
+};
+
+export const getPlatform = async (): Promise<string> => {
+  return await requestAPI<any>('platform', {
     method: 'GET'
   });
 };
@@ -117,8 +120,6 @@ const ReadOnlyFileBrowser = ({
   className,
   onSelect,
   onClose,
-  rootAlias,
-  rootFolder,
   initialFolder,
   allowFiles,
   allowDirectories
@@ -138,9 +139,9 @@ const ReadOnlyFileBrowser = ({
   );
 
   const rootCrumb = {
-    id: rootFolder,
-    name: rootAlias,
-    path: rootFolder,
+    id: 'root',
+    name: 'Root',
+    path: 'root',
     parentId: null,
     isDir: true
   };
@@ -155,9 +156,7 @@ const ReadOnlyFileBrowser = ({
     const useFiles = async (currentFolderId: string) => {
       const data = await getDir(currentFolderId);
       // This sets the breadcrumbs
-      setFolderChain(
-        getFolderChain(data.name, data.breadcrumbs || [], rootCrumb)
-      );
+      setFolderChain(getFolderChain(data.path));
       // This sets the contents
       if (!data.contents?.length) {
         setFiles([]);
@@ -174,20 +173,32 @@ const ReadOnlyFileBrowser = ({
     useFiles(currentFolder);
   }, [currentFolder]);
 
-  const getFolderChain = (
-    currentFolderName: string,
-    breadcrumbs: string[],
-    rootCrumb: FileData
-  ) => {
+  const getFolderChain = (currentFolderName: string) => {
     const parseChain = () => {
-      const breadcrumbsCurrent = [...breadcrumbs.slice(1), currentFolderName];
-      // TODO: this or a reducer?
-      let accumulator: string[] = [rootCrumb.path];
-      return breadcrumbsCurrent.map(Item => {
-        const name = Item.replace('/', '');
-        const parent = accumulator.join('/');
+      // Splitting the current folder name by a forward slash
+      // will give us different results on linux/macos and
+      // windows. On the former, the leading slash will be lost,
+      // whereas on windows all paths are preceded by a drive,
+      // which will be retained. The epi2melabs host API permits
+      // use of a keyword 'root' to give us a cross-platform root
+      // concept. We add the special 'root' to the beginning of
+      // every folder chain here. On linux 'root' is interpreted
+      // as the lost leading slash, but on windows it is
+      // interpreted to mean that we want to view all drives,
+      // similar in nature to 'My Computer'.
+      const splitPath = currentFolderName
+        .split('/')
+        .filter(Item => Item !== '');
+      let accumulator: string[] = currentFolderName
+        .toLowerCase()
+        .startsWith('root')
+        ? [rootCrumb.path]
+        : [];
+      return splitPath.map(Item => {
+        const name = Item;
+        const parent = accumulator.join('/') + '/';
         accumulator = [...accumulator, name];
-        const path = accumulator.join('/');
+        const path = accumulator.join('/') + '/';
         return {
           id: path,
           name: name,

@@ -1,3 +1,5 @@
+import { AnyObjectWithStringKeys } from 'tsdef';
+
 export type Workflow = {
   url: string;
   name: string;
@@ -5,6 +7,7 @@ export type Workflow = {
   desc: string;
   schema: WorkflowSchema;
   defaults: WorkflowDefaults;
+  demo_data: AnyObjectWithStringKeys;
   docs: WorkflowDocs;
 };
 
