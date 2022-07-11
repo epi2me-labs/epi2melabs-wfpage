@@ -1,18 +1,9 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useContext
-} from 'react';
+import React, { useState, useRef, useCallback, useContext } from 'react';
 import { requestAPI } from '../../handler';
 import styled from 'styled-components';
 import { debounce } from 'lodash';
 import StyledTooltip from '../common/Tooltip';
-import StyledReadOnlyFileBrowser, {
-  getDir,
-  getParentDir
-} from '../common/FileBrowser';
+import StyledReadOnlyFileBrowser, { getParentDir } from '../common/FileBrowser';
 import { BrowserContext } from '../workflow/WorkflowLaunchPanel';
 import { Nullable } from 'tsdef';
 
@@ -78,21 +69,12 @@ const FileInput = ({
   // Set up state
   // ------------------------------------
   const inputRef = useRef(null);
-  const [rootFolder, setRootFolder] = useState<Nullable<string>>(null);
   const { browserLocation, setBrowserLocation } = useContext(BrowserContext);
   const [browserError, setBrowserError] = useState<Nullable<string>>(null);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [currentFolder, setCurrentFolder] = useState(
     defaultValue || browserLocation
   );
-
-  useEffect(() => {
-    const updateRoot = async () => {
-      const root = await getDir('/');
-      setRootFolder(root.path);
-    };
-    updateRoot();
-  }, []);
 
   // ------------------------------------
   // Handle browser change
@@ -198,19 +180,17 @@ const FileInput = ({
         </label>
         <button
           className="file-browser-toggle"
-          onClick={() => (rootFolder ? onBrowserOpen(inputRef) : '')}
+          onClick={() => onBrowserOpen(inputRef)}
         >
           Browse
         </button>
       </div>
 
-      {browserOpen && rootFolder ? (
+      {browserOpen ? (
         <StyledReadOnlyFileBrowser
           onClose={onBrowserClose}
           onSelect={(i: string, j: string) => onBrowserSelect(inputRef, i, j)}
-          rootAlias={rootFolder === '/' ? 'Root' : rootFolder}
-          rootFolder={rootFolder}
-          initialFolder={currentFolder || rootFolder}
+          initialFolder={currentFolder || 'root'}
           allowFiles={!!['file-path', 'path'].includes(format)}
           allowDirectories={!!['directory-path', 'path'].includes(format)}
         />

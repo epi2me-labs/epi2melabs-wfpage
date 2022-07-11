@@ -15,6 +15,15 @@ class LauncherAPIHandler(APIHandler):
         self.launcher = launcher
 
 
+class Platform(LauncherAPIHandler):
+
+    @tornado.web.authenticated
+    def get(self) -> None:
+        self.finish(json.dumps({
+            'platform': self.launcher.platform
+        }))
+
+
 class Workflows(LauncherAPIHandler):
 
     @tornado.web.authenticated
@@ -130,6 +139,8 @@ class Instance(LauncherAPIHandler):
         self.finish(json.dumps({'deleted': True}))
 
 
+
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
     base_url = web_app.settings["base_url"]
@@ -156,6 +167,7 @@ def setup_handlers(web_app):
         base_url, epi2melabs_wfpage, r"instances/?")
 
     # Filesystem
+
     cwd_pattern = url_path_join(
         base_url, epi2melabs_wfpage, r"cwd/?")
     path_pattern = url_path_join(

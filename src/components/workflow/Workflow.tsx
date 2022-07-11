@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import StyledTabbedHeader from '../common/TabbedHeader';
 import StyledWorkflowLaunchPanel from './WorkflowLaunchPanel';
 import StyledWorkflowDocsPanel from './WorkflowDocsPanel';
+import StyledWorkflowTestRunPanel from './WorkflowTestRunPanel';
 import styled from 'styled-components';
 import { Workflow } from './types';
 import { Nullable } from 'tsdef';
@@ -78,7 +79,7 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
   // ------------------------------------
   const tabs = [
     {
-      body: 'Launch workflow',
+      body: 'Run workflow',
       onClick: () => setSelectedTab(0),
       element: (
         <div
@@ -103,6 +104,25 @@ const WorkflowComponent = ({ className }: IWorkflowComponent): JSX.Element => {
       )
     }
   ];
+
+  if (
+    workflowData?.demo_data &&
+    Object.keys(workflowData.demo_data).length !== 0
+  ) {
+    tabs.push({
+      body: 'Workflow demo',
+      onClick: () => setSelectedTab(2),
+      element: (
+        <div className="tab-contents animated">
+          <StyledWorkflowTestRunPanel
+            workflowName={workflowName}
+            workflowDefaults={workflowData?.defaults || {}}
+            workflowDemoData={workflowData?.demo_data}
+          />
+        </div>
+      )
+    });
+  }
 
   return workflowData ? (
     <div className={`workflow ${className}`}>
