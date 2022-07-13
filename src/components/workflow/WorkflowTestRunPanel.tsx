@@ -68,15 +68,15 @@ const WorkflowTestRunPanel = ({
           </div>
           <p>
             This mode will perform a test run of the workflow using freely
-            provided demo data. This is a great way to interactively examine
+            provided demo data. This is a great way to interactively examine the
             report and outputs that the workflow generates in order to determine
-            determine if that information will be useful in your analysis.
+            if that information will be useful in your analysis.
           </p>
           <span className="divider" />
           <p>
-            Please note: The demo data needs to be downloaded during the running
-            of the application, so if your internet connection is interrupted
-            during this process, the workflow may fail.
+            Please note: The demo data may need to be downloaded during the
+            running of the application, so if your internet connection is
+            interrupted during this process the workflow may fail.
           </p>
         </div>
       </div>
