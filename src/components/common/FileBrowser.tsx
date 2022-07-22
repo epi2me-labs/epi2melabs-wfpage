@@ -30,11 +30,8 @@ interface IPath {
   isdir: boolean;
   exists: boolean;
   error: Nullable<string>;
+  breadcrumbs: Nullable<IPath[]>;
 }
-
-// interface IFilePath extends IPath {
-//   contents?: Nullable<string[]>
-// }
 
 interface IDirectoryPath extends IPath {
   contents?: Nullable<IPath[]>;
@@ -156,7 +153,8 @@ const ReadOnlyFileBrowser = ({
     const useFiles = async (currentFolderId: string) => {
       const data = await getDir(currentFolderId);
       // This sets the breadcrumbs
-      setFolderChain(getFolderChain(data.path));
+      const chain = getFolderChain(data);
+      setFolderChain(chain);
       // This sets the contents
       if (!data.contents?.length) {
         setFiles([]);
@@ -173,44 +171,23 @@ const ReadOnlyFileBrowser = ({
     useFiles(currentFolder);
   }, [currentFolder]);
 
-  const getFolderChain = (currentFolderName: string) => {
+  const getFolderChain = (data: IPath) => {
     const parseChain = () => {
-      // Splitting the current folder name by a forward slash
-      // will give us different results on linux/macos and
-      // windows. On the former, the leading slash will be lost,
-      // whereas on windows all paths are preceded by a drive,
-      // which will be retained. The epi2melabs host API permits
-      // use of a keyword 'root' to give us a cross-platform root
-      // concept. We add the special 'root' to the beginning of
-      // every folder chain here. On linux 'root' is interpreted
-      // as the lost leading slash, but on windows it is
-      // interpreted to mean that we want to view all drives,
-      // similar in nature to 'My Computer'.
-      const splitPath = currentFolderName
-        .split('/')
-        .filter(Item => Item !== '');
-      let accumulator: string[] = currentFolderName
-        .toLowerCase()
-        .startsWith('root')
-        ? [rootCrumb.path]
+      let accumulator: string[] = [];
+      return data.breadcrumbs !== null
+        ? [data, ...data.breadcrumbs].reverse().map((Item, index) => {
+            accumulator = [...accumulator, Item.path];
+            return {
+              id: Item.path,
+              name: Item.name,
+              path: Item.path,
+              parentId: index ? accumulator[index - 1] : null,
+              isDir: true
+            };
+          })
         : [];
-      return splitPath.map(Item => {
-        const name = Item;
-        const parent = accumulator.join('/') + '/';
-        accumulator = [...accumulator, name];
-        const path = accumulator.join('/') + '/';
-        return {
-          id: path,
-          name: name,
-          path: path,
-          parentId: parent,
-          isDir: true
-        };
-      });
     };
-    return currentFolderName === rootCrumb.path
-      ? [rootCrumb]
-      : [rootCrumb, ...parseChain()];
+    return [rootCrumb, ...parseChain()];
   };
 
   // ------------------------------------
